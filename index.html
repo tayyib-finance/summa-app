@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f0f1ec">
+<title>СУММА</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#f0f1ec;--card:#fff;--dark:#2d3a34;--lime:#c8dd5f;
+  --text:#1a1f1c;--muted:#7a8079;--line:#e5e6e0;--danger:#c94a3f;
+}
+html,body{background:var(--bg);color:var(--text);font-size:15px;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+  line-height:1.45;-webkit-font-smoothing:antialiased;}
+body{padding-bottom:90px;}
+.app{max-width:480px;margin:0 auto;padding:0 16px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0 10px;position:sticky;top:0;background:var(--bg);z-index:20;
+  border-bottom:1px solid var(--line);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand .sigma{width:38px;height:38px;border-radius:11px;background:var(--lime);
+  color:var(--dark);display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;}
+.brand .name{font-size:17px;font-weight:700;letter-spacing:-.2px;}
+.icon-btn{width:38px;height:38px;border-radius:50%;background:var(--card);
+  border:1px solid var(--line);display:flex;align-items:center;
+  justify-content:center;cursor:pointer;color:var(--text);font-size:16px;}
+.screen-title{font-size:30px;font-weight:800;letter-spacing:-.6px;
+  line-height:1.15;margin:22px 0 8px;}
+.screen-sub{color:var(--muted);font-size:14px;line-height:1.5;
+  margin-bottom:20px;}
+.card{background:var(--card);border-radius:24px;padding:20px;
+  margin-bottom:14px;}
+.card-label{color:var(--muted);font-size:14px;margin-bottom:8px;}
+.big-number{font-size:36px;font-weight:800;letter-spacing:-1px;
+  line-height:1.1;margin-bottom:6px;}
+.big-number .cur{font-size:24px;font-weight:600;color:var(--muted);}
+.card-hint{color:var(--muted);font-size:13px;line-height:1.5;}
+.btn{display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;padding:12px 20px;border-radius:14px;border:none;font-size:15px;
+  font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .15s;}
+.btn:active{opacity:.75;}
+.btn-dark{background:var(--dark);color:#fff;}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--line);}
+.btn-block{width:100%;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+.search{width:100%;padding:14px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);font-size:15px;
+  font-family:inherit;color:var(--text);margin-bottom:16px;}
+.search:focus{outline:none;border-color:var(--dark);}
+input,select,textarea{width:100%;padding:14px 16px;border:1px solid var(--line);
+  border-radius:14px;font-size:15px;font-family:inherit;background:var(--card);
+  color:var(--text);margin-bottom:12px;}
+input:focus,select:focus{outline:none;border-color:var(--dark);}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;
+  font-weight:500;}
+.field{margin-bottom:14px;}
+.empty-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+.empty-desc{color:var(--muted);font-size:14px;line-height:1.55;
+  margin-bottom:16px;}
+.list-item{background:var(--card);border-radius:16px;padding:16px 18px;
+  margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;cursor:pointer;}
+.list-item:active{background:#f7f8f2;}
+.list-item .main{flex:1;min-width:0;}
+.list-item .title{font-weight:600;margin-bottom:2px;}
+.list-item .sub{color:var(--muted);font-size:13px;}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--lime);
+  color:var(--dark);display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;flex-shrink:0;}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;
+  font-size:12px;font-weight:600;}
+.badge-green{background:#e5f0d0;color:#5a7522;}
+.badge-yellow{background:#fbeecb;color:#8a6a1f;}
+.badge-red{background:#f5d4cf;color:#8a2f22;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);
+  padding:10px 16px calc(14px + env(safe-area-inset-bottom));
+  display:flex;justify-content:center;z-index:50;}
+.bottom-nav-inner{display:flex;gap:4px;background:var(--card);padding:6px;
+  border-radius:22px;box-shadow:0 2px 12px rgba(0,0,0,.06);width:100%;
+  max-width:440px;}
+.nav-btn{flex:1;padding:10px 6px;border-radius:16px;background:none;border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-family:inherit;position:relative;}
+.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.nav-btn.active{background:var(--dark);color:var(--lime);}
+.nav-btn.active::after{content:'';position:absolute;inset:0;border-radius:16px;
+  border:2px solid var(--lime);pointer-events:none;}
+.screen{display:none;}
+.screen.active{display:block;}
+.modal-bg{position:fixed;inset:0;background:rgba(26,31,28,.5);z-index:100;
+  display:none;align-items:flex-end;justify-content:center;}
+.modal-bg.active{display:flex;}
+.modal{background:var(--bg);width:100%;max-width:480px;
+  border-radius:24px 24px 0 0;padding:20px;max-height:92vh;overflow-y:auto;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;}
+.modal-head h3{font-size:20px;font-weight:700;}
+.modal-close{background:none;border:none;font-size:26px;color:var(--muted);
+  cursor:pointer;line-height:1;padding:0 6px;}
+.login-wrap{min-height:100vh;display:flex;align-items:center;
+  justify-content:center;padding:24px;}
+.login-box{background:var(--card);border-radius:24px;padding:32px 26px;
+  width:100%;max-width:360px;text-align:center;}
+.login-box .brand-mark{width:64px;height:64px;border-radius:18px;
+  background:var(--lime);color:var(--dark);display:flex;align-items:center;
+  justify-content:center;font-size:32px;font-weight:800;margin:0 auto 16px;}
+.login-box h1{font-size:26px;font-weight:800;margin-bottom:6px;}
+.login-box p{color:var(--muted);font-size:14px;line-height:1.5;
+  margin-bottom:24px;}
+.role-switch{display:flex;gap:6px;background:var(--bg);padding:4px;
+  border-radius:14px;margin-bottom:16px;}
+.role-switch button{flex:1;padding:10px;border-radius:11px;border:none;
+  background:none;font-weight:600;font-size:14px;color:var(--muted);
+  font-family:inherit;cursor:pointer;}
+.role-switch button.active{background:var(--dark);color:#fff;}
+.pin-input{text-align:center;font-size:22px;letter-spacing:10px;
+  font-weight:700;padding:14px;}
+.login-hint{color:var(--muted);font-size:12px;line-height:1.7;
+  margin-top:14px;}
+.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
+  background:var(--dark);color:#fff;padding:12px 20px;border-radius:14px;
+  font-size:14px;z-index:999;opacity:0;transition:opacity .25s;
+  pointer-events:none;max-width:88%;text-align:center;}
+.toast.show{opacity:1;}
+.divider{height:1px;background:var(--line);margin:24px 0;border:none;}
+.section-label{font-size:15px;font-weight:700;margin:24px 0 12px;}
+</style>
+</head>
+<body>
+
+<!-- ВХОД -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-box">
+    <div class="brand-mark">Σ</div>
+    <h1>СУММА</h1>
+    <p>Учёт товарной рассрочки:<br>клиенты, договоры и платежи по месяцам.</p>
+    <div class="role-switch" id="roleSwitch">
+      <button data-role="owner" class="active">Владелец</button>
+      <button data-role="shop">Магазин</button>
+    </div>
+    <input type="password" id="pinInput" class="pin-input"
+      maxlength="4" inputmode="numeric" placeholder="••••">
+    <button class="btn btn-dark btn-block" onclick="tryLogin()">Войти</button>
+    <div class="login-hint">
+      Владелец: <b>1111</b> · Магазин: <b>2222</b>
+    </div>
+  </div>
+</div>
+
+<!-- ПРИЛОЖЕНИЕ -->
+<div id="appScreen" style="display:none">
+<div class="app">
+  <div class="topbar" id="topbar" style="display:none">
+    <div class="brand"><div class="sigma">Σ</div>
+      <div class="name">СУММА</div></div>
+    <div class="icon-btn" onclick="toast('Поиск — скоро')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    </div>
+  </div>
+
+  <div id="screen-summary" class="screen active">
+    <h1 class="screen-title">Сводка</h1>
+    <p class="screen-sub">Оборот, ожидания и долги по всем договорам.</p>
+    <div class="card">
+      <div class="card-label">Капитал в обороте</div>
+      <div class="big-number"><span id="s-turnover">0</span>
+        <span class="cur">₽</span></div>
+      <div class="card-hint">Сумма всех активных договоров</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Собрано в этом месяце</div>
+      <div class="big-number" style="color:#5a7522">
+        <span id="s-collected">0</span> <span class="cur">₽</span></div>
+      <div class="card-hint">Ожидается: <b id="s-expected">0 ₽</b></div>
+    </div>
+    <div class="btn-row" style="margin-top:20px">
+      <button class="btn btn-dark" style="flex:1"
+        onclick="openNewContract()">Новый договор</button>
+      <button class="btn btn-outline" onclick="nav('calc')">Σ</button>
+    </div>
+    <div class="section-label">Последние договоры</div>
+    <div id="recentList"></div>
+  </div>
+
+  <div id="screen-clients" class="screen">
+    <h1 class="screen-title">Клиенты</h1>
+    <p class="screen-sub">С клиента начинается договор: сначала заводится
+      человек, потом на него оформляется рассрочка.</p>
+    <button class="btn btn-dark" style="margin-bottom:16px"
+      onclick="openClientForm()">Добавить</button>
+    <input type="search" class="search" id="clientSearch"
+      placeholder="Поиск по имени или телефону" oninput="renderClients()">
+    <div id="clientsList"></div>
+  </div>
+
+  <div id="screen-contracts" class="screen">
+    <h1 class="screen-title">Договоры</h1>
+    <p class="screen-sub">Скоро здесь появятся договоры, график платежей,
+      печать PDF и WhatsApp.</p>
+    <div class="card">
+      <div class="empty-title">В разработке</div>
+      <div class="empty-desc">Функционал договоров добавим в следующем
+        обновлении.</div>
+    </div>
+  </div>
+
+  <div id="screen-calendar" class="screen">
+    <h1 class="screen-title">Календарь</h1>
+    <p class="screen-sub">Какого числа сколько придёт и от кого.</p>
+    <div class="card">
+      <div class="empty-title">В разработке</div>
+      <div class="empty-desc">Сетка месяца с датами оплат.</div>
+    </div>
+  </div>
+
+  <div id="screen-more" class="screen">
+    <h1 class="screen-title">Ещё</h1>
+    <div class="list-item" onclick="exportData()">
+      <div class="main"><div class="title">📤 Отправить владельцу</div>
+        <div class="sub">Экспорт JSON для WhatsApp</div></div>
+    </div>
+    <div class="list-item" onclick="importData()">
+      <div class="main"><div class="title">📥 Импорт от сотрудника</div>
+        <div class="sub">Загрузить присланный JSON</div></div>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      padding:8px 0">
+      <div style="color:var(--muted);font-size:14px" id="whoAmI">—</div>
+      <button class="btn btn-outline" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="nav-btn active" data-screen="summary"
+      onclick="nav('summary')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/></svg>
+    </button>
+    <button class="nav-btn" data-screen="clients" onclick="nav('clients')">
+      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </button>
+    <button class="nav-btn" data-screen="contracts"
+      onclick="nav('contracts')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </button>
+    <button class="nav-btn" data-screen="calendar" onclick="nav('calendar')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </button>
+    <button class="nav-btn" data-screen="more" onclick="nav('more')">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+</div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">—</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB_KEY='summa_db_v1';
+let DB=null,ROLE=null,SELECTED_ROLE='owner';
+
+function loadDB(){
+  try{const r=localStorage.getItem(DB_KEY);if(r)return JSON.parse(r);}catch(e){}
+  return{clients:[],contracts:[],audit:[],
+    pins:{owner:'1111',shop:'2222'}};
+}
+function saveDB(){localStorage.setItem(DB_KEY,JSON.stringify(DB));}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+const monthPrefix=()=>{const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+
+function toast(m){const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2000);}
+
+document.querySelectorAll('#roleSwitch button').forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll('#roleSwitch button')
+    .forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');SELECTED_ROLE=b.dataset.role;};
+});
+
+function tryLogin(){
+  const pin=document.getElementById('pinInput').value.trim();
+  if(pin===DB.pins[SELECTED_ROLE]){
+    ROLE=SELECTED_ROLE;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    document.getElementById('whoAmI').textContent=
+      ROLE==='owner'?'Вы вошли как владелец':'Вы вошли как магазин';
+    refreshAll();
+  }else{toast('Неверный PIN');document.getElementById('pinInput').value='';}
+}
+function logout(){ROLE=null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';}
+
+function nav(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const el=document.getElementById('screen-'+s);if(el)el.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.querySelector('.nav-btn[data-screen="'+s+'"]');
+  if(nb)nb.classList.add('active');
+  document.getElementById('topbar').style.display=
+    s==='summary'?'none':'flex';
+  window.scrollTo(0,0);refreshAll();
+}
+
+function openModal(t,h){
+  document.getElementById('modalTitle').textContent=t;
+  document.getElementById('modalBody').innerHTML=h;
+  document.getElementById('modalBg').classList.add('active');}
+function closeModal(){document.getElementById('modalBg').classList.remove('active');}
+
+function refreshAll(){renderSummary();renderClients();renderRecent();}
+
+function renderSummary(){
+  const act=DB.contracts.filter(c=>c.status==='active');
+  const turnover=act.reduce((s,c)=>s+(c.total||0),0);
+  const mp=monthPrefix();
+  const collected=DB.contracts.flatMap(c=>c.schedule||[])
+    .filter(p=>p.paid&&p.paidDate&&p.paidDate.startsWith(mp))
+    .reduce((s,p)=>s+(p.amount||0),0);
+  const expected=DB.contracts.flatMap(c=>c.schedule||[])
+    .filter(p=>!p.paid&&p.date&&p.date.startsWith(mp))
+    .reduce((s,p)=>s+(p.amount||0),0);
+  document.getElementById('s-turnover').textContent=fmt(turnover);
+  document.getElementById('s-collected').textContent=fmt(collected);
+  document.getElementById('s-expected').textContent=fmt(expected)+' ₽';
+}
+
+function renderRecent(){
+  const el=document.getElementById('recentList');
+  const list=[...DB.contracts].slice(0,5);
+  if(!list.length){
+    el.innerHTML='<div class="card"><div class="empty-title">'+
+      'Договоров пока нет</div><div class="empty-desc">'+
+      'Нажмите «Новый договор», чтобы создать первый.</div></div>';
+    return;
+  }
+  el.innerHTML=list.map(c=>{
+    const cl=DB.clients.find(x=>x.id===c.clientId);
+    return '<div class="list-item"><div class="main">'+
+      '<div class="title">'+(cl?cl.name:'—')+'</div>'+
+      '<div class="sub">'+(c.product||'—')+' · '+
+      fmt(c.total||0)+' ₽</div></div></div>';
+  }).join('');
+}
+
+function renderClients(){
+  const q=(document.getElementById('clientSearch').value||'').toLowerCase();
+  const list=DB.clients.filter(c=>!q||c.name.toLowerCase().includes(q)||
+    (c.phone||'').includes(q));
+  const el=document.getElementById('clientsList');
+  if(!list.length){
+    el.innerHTML='<div class="card"><div class="empty-title">'+
+      'Клиентов пока нет</div><div class="empty-desc">'+
+      'С клиента начинается договор. Добавьте первого.</div>'+
+      '<button class="btn btn-dark" onclick="openClientForm()">'+
+      'Добавить первого</button></div>';
+    return;
+  }
+  el.innerHTML=list.map(c=>{
+    const ini=c.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    return '<div class="list-item" onclick="openClientCard(\''+c.id+'\')">'+
+      '<div style="display:flex;align-items:center;gap:12px;flex:1">'+
+      '<div class="avatar">'+ini+'</div><div class="main">'+
+      '<div class="title">'+c.name+'</div>'+
+      '<div class="sub">'+(c.phone||'—')+'</div></div></div></div>';
+  }).join('');
+}
+
+function openClientForm(){
+  openModal('Новый клиент',
+    '<div class="field"><label>ФИО</label><input id="cf-name"></div>'+
+    '<div class="field"><label>Телефон</label><input id="cf-phone" '+
+    'type="tel" placeholder="+7..."></div>'+
+    '<div class="field"><label>Адрес</label><input id="cf-address"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="saveClient()">'+
+    'Сохранить</button>');
+}
+function saveClient(){
+  const name=document.getElementById('cf-name').value.trim();
+  if(!name){toast('Введите имя');return;}
+  DB.clients.push({
+    id:uid(),name,
+    phone:document.getElementById('cf-phone').value.trim(),
+    address:document.getElementById('cf-address').value.trim(),
+    createdAt:new Date().toISOString()
+  });
+  saveDB();closeModal();refreshAll();toast('Клиент добавлен');
+}
+function openClientCard(id){
+  const c=DB.clients.find(x=>x.id===id);if(!c)return;
+  openModal(c.name,
+    '<div style="color:var(--muted);margin-bottom:14px">'+
+    (c.phone||'—')+'</div>'+
+    '<button class="btn btn-outline btn-block" style="margin-bottom:10px" '+
+    'onclick="deleteClient(\''+id+'\')">Удалить</button>');
+}
+function deleteClient(id){
+  if(!confirm('Удалить клиента?'))return;
+  DB.clients=DB.clients.filter(x=>x.id!==id);
+  saveDB();closeModal();refreshAll();toast('Удалён');
+}
+
+function openNewContract(){toast('Раздел договоров — в разработке');}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='summa-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);toast('Файл скачан');
+}
+function importData(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{try{DB=JSON.parse(ev.target.result);saveDB();
+      refreshAll();toast('Импорт выполнен');}catch(err){toast('Ошибка файла');}};
+    r.readAsText(f);
+  };inp.click();
+}
+
+DB=loadDB();
+document.getElementById('pinInput').addEventListener('keypress',e=>{
+  if(e.key==='Enter')tryLogin();
+});
+</script>
+</body>
+</html>
