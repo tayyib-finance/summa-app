@@ -738,6 +738,370 @@ DB=loadDB();
 document.getElementById('pinInput').addEventListener('keypress',e=>{
   if(e.key==='Enter')tryLogin();
 });
+  
+/* ============================================================
+   ЧАСТЬ 3 — КАЛЬКУЛЯТОР + ДОГОВОРЫ + PDF
+   ============================================================ */
+
+let _months=6;
+
+/* === КАЛЬКУЛЯТОР как lariba.ru === */
+function syncFromRange(which){
+  const priceEl=document.getElementById('c-price');
+  const downEl=document.getElementById('c-down');
+  const monthsEl=document.getElementById('c-months');
+
+  if(which==='price'){
+    downEl.max=Math.round(+priceEl.value/2);
+    if(+downEl.value<priceEl.value*0.2) downEl.value=Math.round(priceEl.value*0.2);
+  }
+
+  const price=+priceEl.value;
+  const down=Math.min(+downEl.value,price);
+  const months=+monthsEl.value;
+  _months=months;
+
+  document.getElementById('c-price-v').value=fmtR(price);
+  document.getElementById('c-down-v').value=fmtR(down);
+  document.getElementById('c-months-v').value=months;
+
+  updateCalcDisplay(price,down,months);
+}
+function updateCalcDisplay(price,down,months){
+  const fin=price-down;
+  const markup=fin*0.05*months;
+  const total=price+markup;
+  const monthly=Math.round((fin+markup)/months);
+  document.getElementById('c-monthly').textContent=fmtR(monthly);
+  document.getElementById('c-markup').textContent=fmtR(markup);
+  document.getElementById('c-total').textContent=fmtR(total);
+}
+function editNum(which){
+  const map={price:'c-price-v',down:'c-down-v',months:'c-months-v'};
+  const el=document.getElementById(map[which]);
+  el.value=el.value.replace(/\D/g,'');
+  el.select();
+}
+function applyNum(which){
+  const mapR={price:'c-price',down:'c-down',months:'c-months'};
+  const mapV={price:'c-price-v',down:'c-down-v',months:'c-months-v'};
+  const rangeEl=document.getElementById(mapR[which]);
+  const valueEl=document.getElementById(mapV[which]);
+  let val=parseInt(valueEl.value.replace(/\D/g,''))||0;
+
+  if(which==='months'){val=Math.max(1,Math.min(24,val));}
+  if(which==='price'){val=Math.max(1000,Math.min(1000000,val));}
+  if(which==='down'){
+    const p=+document.getElementById('c-price').value;
+    val=Math.max(Math.round(p*0.2),Math.min(p,val));
+  }
+
+  rangeEl.value=val;
+  syncFromRange(which==='down'?'price':which);
+  if(which==='down')syncFromRange('price');
+}
+
+/* === Открыть анкету из калькулятора === */
+function openClientFormFromCalc(){
+  const price=+document.getElementById('c-price').value;
+  const down=+document.getElementById('c-down').value;
+  const months=+document.getElementById('c-months').value;
+
+  openModal('Анкета клиента',
+    '<div style="color:var(--muted);font-size:13px;margin-bottom:14px">'+
+    'Цена: <b>'+fmtR(price)+'</b> · Взнос: <b>'+fmtR(down)+'</b> · Срок: <b>'+months+' мес.</b></div>'+
+    '<div class="field"><label>ФИО *</label><input id="a-name" placeholder="Фамилия Имя Отчество"></div>'+
+    '<div class="field"><label>Телефон *</label><input id="a-phone" type="tel" placeholder="+7..."></div>'+
+    '<div class="field"><label>Дата рождения</label><input id="a-birth" type="date"></div>'+
+    '<div class="field"><label>Адрес</label><input id="a-address"></div>'+
+    '<div class="field"><label>Паспорт</label><input id="a-passport" placeholder="серия, номер, кем, когда"></div>'+
+    '<div class="field"><label>Свидетель (ФИО)</label><input id="a-witness"></div>'+
+    '<div class="field"><label>Товар *</label><input id="a-product" placeholder="Например: диван"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="saveContractFromForm()">'+
+    'Создать договор</button>');
+
+  window._calcData={price,down,months};
+}
+
+function saveContractFromForm(){
+  const name=document.getElementById('a-name').value.trim();
+  const phone=document.getElementById('a-phone').value.trim();
+  const product=document.getElementById('a-product').value.trim();
+  if(!name){toast('Введите имя');return;}
+  if(!product){toast('Введите товар');return;}
+
+  const cid=uid();
+  DB.clients.push({
+    id:cid,name,phone,
+    birth:document.getElementById('a-birth').value||'',
+    address:document.getElementById('a-address').value.trim(),
+    passport:document.getElementById('a-passport').value.trim(),
+    witness:document.getElementById('a-witness').value.trim(),
+    createdAt:new Date().toISOString()
+  });
+
+  const {price,down,months}=window._calcData;
+  const fin=price-down;
+  const markup=Math.round(fin*0.05*months);
+  const total=price+markup;
+  const monthly=Math.round((fin+markup)/months);
+  const start=new Date();
+  const schedule=[];
+  for(let i=1;i<=months;i++){
+    const d=new Date(start.getFullYear(),start.getMonth()+i,start.getDate());
+    schedule.push({n:i,date:d.toISOString().slice(0,10),
+      amount:monthly,paid:false,paidDate:null});
+  }
+
+  const contractId=uid();
+  DB.contracts.push({
+    id:contractId,clientId:cid,product,price,down,months,
+    markup,total,monthly,startDate:start.toISOString().slice(0,10),
+    schedule,status:'active',
+    createdBy:ROLE,createdAt:new Date().toISOString()
+  });
+  saveDB();
+  logAudit('Договор создан',name+' — '+product+' — '+fmtR(total));
+  closeModal();
+  refreshAll();
+  toast('Договор создан');
+  setTimeout(()=>openContract(contractId),300);
+}
+
+/* === НОВЫЙ ДОГОВОР (напрямую) === */
+function openNewContract(){
+  const clientOpts=DB.clients.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  if(!DB.clients.length){toast('Сначала добавьте клиента');nav('clients');return;}
+
+  openModal('Новый договор',
+    '<div class="field"><label>Клиент</label>'+
+      '<select id="n-client">'+clientOpts+'</select></div>'+
+    '<div class="field"><label>Товар</label>'+
+      '<input id="n-product" placeholder="Например: диван"></div>'+
+    '<div class="field"><label>Категория</label>'+
+      '<select id="n-category">'+DB.categories.map;i(c=>'<option>'+c+'</option>').join('')+'</select></div>'+
+    '<div class="field"><label>Цена товара (₽)</label>'+
+      '<input id="n-price" type="number" value="50000" oninput="updateNewCalc()"></div>'+
+    '<div class="field"><label>Первый взнос (₽, мин. 20%)</label>'+
+      '<input id="n-down" type="number" value="10000" oninput="updateNewCalc()"></div>'+
+    '<div class="field"><label>Срок (мес., 1-24)</label>'+
+      '<input id="n-months" type="number" value="6" min="1" max="24" oninput="updateNewCalc()"></div>'+
+    '<div class="field"><label>Дата первого платежа</label>'+
+      '<input id="n-start" type="date" value="'+todayISO()+'"></div>'+
+    '<div class="calc-result" id="n-calc" style="background:var(--dark);color:#fff;'+
+      'border-radius:20px;padding:18px;margin-bottom:14px"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="saveContract()">Создать договор</button>');
+
+  updateNewCalc();
+}
+function updateNewCalc(){
+  const price=+document.getElementById('n-price').value||0;
+  const down=+document.getElementById('n-down').value||0;
+  const months=Math.max(1,Math.min(24,+document.getElementById('n-months').value||6));
+  const fin=Math.max(0,price-down);
+  const markup=Math.round(fin*0.05*months);
+  const total=price+markup;
+  const monthly=Math.round((fin+markup)/months);
+  document.getElementById('n-calc').innerHTML=
+    '<div style="font-size:13px;opacity:.8">Ежемесячный платёж</div>'+
+    '<div style="font-size:24px;font-weight:800;color:var(--lime)">'+fmtR(monthly)+'</div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:10px;font-size:13px">'+
+    '<span>Наценка</span><span>'+fmtR(markup)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px">'+
+    '<span>Итого</span><span>'+fmtR(total)+'</span></div>';
+}
+function saveContract(){
+  const clientId=document.getElementById('n-client').value;
+  const product=document.getElementById('n-product').value.trim();
+  const category=document.getElementById('n-category').value;
+  const price=+document.getElementById('n-price').value||0;
+  const down=+document.getElementById('n-down').value||0;
+  const months=Math.max(1,Math.min(24,+document.getElementById('n-months').value||6));
+  const startStr=document.getElementById('n-start').value||todayISO();
+
+  if(!product){toast('Введите товар');return;}
+  if(price<=0){toast('Введите цену');return;}
+  if(down<price*0.2){toast('Минимальный взнос 20%');return;}
+
+  const fin=price-down;
+  const markup=Math.round(fin*0.05*months);
+  const total=price+markup;
+  const monthly=Math.round((fin+markup)/months);
+  const start=parseD(startStr);
+  const schedule=[];
+  for(let i=1;i<=months++){
+    const d=new Date(start.getFullYear(),start.getMonth()+i,start.getDate());
+    schedule.push({n:i,date:d.toISOString().slice(0,10),
+      amount:monthly,paid:false,paidDate:null});
+  }
+  const cid=uid();
+  DB.contracts.push({
+    id:cid,clientId,product,category,price,down,months,
+    markup,total,monthly,startDate:startStr,schedule,
+    status:'active',createdBy:ROLE,
+    createdAt:new Date().toISOString()
+  });
+  saveDB();
+  const cl=DB.clients.find(x=>x.id===clientId);
+  logAudit('Договор создан',(cl?cl.name:'?')+' — '+product+' — '+fmtR(total));
+  closeModal();refreshAll();toast('Договор создан');
+  setTimeout(()=>openContract(cid),300);
+}
+
+/* === КАРТОЧКА ДОГОВОРА === */
+function openContract(id){
+  const c=DB.contracts.find(x=>x.id===id);if(!c)return;
+  const cl=DB.clients.find(x=>x.id===c.clientId)||{};
+  const paidSum=(c.schedule||[]).reduce((s,p)=>s+(p.paid?p.amount:0),0);
+  const pct=c.total?Math.round(paidSum/c.total*100):0;
+  const now=new Date();
+  const rows=(c.schedule||[]).map((p,i)=>{
+    const isOverdue=!p.paid&&parseD(p.date)<now;
+    const cls=p.paid?'paid':isOverdue?'overdue':'';
+    const icon=p.paid?'✅':isOverdue?'⏰':'⏳';
+    return '<div class="schedule-row '+cls+'">'+
+      '<div class="info"><div class="date">'+fmtDate(p.date)+'</div>'+
+      '<div class="amt">'+fmtR(p.amount)+'</div></div>'+
+      '<div class="check" onclick="togglePaid(\''+c.id+'\','+i+')">'+icon+'</div>'+
+      '</div>';
+  }).join('');
+
+  openModal('Договор',
+    '<div style="margin-bottom:8px"><b>'+(cl.name||'—')+'</b></div>'+
+    '<div style="color:var(--muted);margin-bottom:14px">'+c.product+(c.category?' · '+c.category:'')+'</div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Цена:</span><b>'+fmtR(c.price)+'</b></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Наценка:</span><b>'+fmtR(c.markup)+'</b></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Итого:</span><b>'+fmtR(c.total)+'</b></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:14px"><span>Платёж/мес:</span><b>'+fmtR(c.monthly)+'</b></div>'+
+    '<div class="progress"><div style="width:'+pct+'%"></div></div>'+
+    '<div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:18px">'+
+    'Выплачено '+pct+'% · остаток '+fmtR(c.total-paidSum)+'</div>'+
+    '<div class="section-label" style="margin-top:0">График платежей</div>'+
+    '<div class="card" style="padding:8px 18px">'+rows+'</div>'+
+    '<div class="btn-row" style="margin-top:14px">'+
+      '<button class="btn btn-outline" style="flex:1" onclick="printContract(\''+c.id+'\')">📄 Договор</button>'+
+      '<button class="btn btn-outline" style="flex:1" onclick="whatsappSchedule(\''+c.id+'\')">📲 График</button>'+
+    '</div>'+
+    (c.status==='active'?
+      '<button class="btn btn-dark btn-block" style="margin-top:10px" '+
+      'onclick="closeContract(\''+c.id+'\')">Завершить и в архив</button>':'')+
+    '<button class="btn btn-outline btn-block" style="margin-top:10px;color:var(--danger)" '+
+    'onclick="deleteContract(\''+c.id+'\')">Удалить договор</button>'
+  );
+}
+
+function togglePaid(cid,idx){
+  const c=DB.contracts.find(x=>x.id===cid);
+  const p=c.schedule[idx];
+  p.paid=!p.paid;
+  p.paidDate=p.paid?todayISO():null;
+  saveDB();
+  logAudit('Оплата',(p.paid?'✓ ':'✗ отмена ')+fmtR(p.amount)+' — '+fmtDate(p.date));
+  closeModal();refreshAll();
+  toast(p.paid?'Оплата зафиксирована':'Оплата снята');
+  setTimeout(()=>openContract(cid),200);
+}
+
+function closeContract(cid){
+  const c=DB.contracts.find(x=>x.id===cid);
+  c.status='closed';saveDB();
+  logAudit('Договор закрыт',c.product);
+  closeModal();refreshAll();toast('В архиве');
+}
+
+function deleteContract(cid){
+  if(!confirm('Удалить договор полностью?'))return;
+  DB.contracts=DB.contracts.filter(x=>x.id!==cid);
+  saveDB();logAudit('Договор удалён','');
+  closeModal();refreshAll();toast('Удалён');
+}
+
+/* === ПЕЧАТЬ ДОГОВОРА (по шаблону из PDF 109/110) === */
+function printContract(cid){
+  const c=DB.contracts.find(x=>x.id===cid);
+  const cl=DB.clients.find(x=>x.id===c.clientId)||{};
+  const rows=(c.schedule||[]).map(p=>
+    '<tr><td>'+fmtDate(p.date)+'</td><td style="text-align:right">'+fmtR(p.amount)+'</td></tr>'
+  ).join('');
+  const lastDate=(c.schedule||[]).slice(-1)[0]?.date||'';
+  const today=new Date().toLocaleDateString('ru-RU');
+  const sellerName=prompt('ФИО продавца (ваше):','Магомедов Лабазан Алиевич')||'';
+  const sellerWitness=prompt('ФИО свидетеля:','Аджиев Динислам Султанович')||'';
+
+  document.getElementById('printArea').innerHTML=
+    '<h1>Договор от '+today+' г.</h1>'+
+    '<h2>С именем Аллаха Милостивого и Милосердного.</h2>'+
+    '<ul>'+
+    '<li>Я, <b>'+sellerName+'</b>'+(sellerWitness?' (свидетель <b>'+sellerWitness+'</b>)':'')+
+      ' отдаю в рассрочку <b>'+(cl.name||'—')+'</b>'+
+      (cl.passport?', паспорт '+cl.passport:'')+
+      (cl.witness?', (свидетель '+cl.witness+')':'')+
+      ' <b>'+c.product+'</b> на сумму <b>'+fmt(c.total)+'</b> ('+toWords(c.total)+') рублей на срок <b>'+c.months+' месяцев</b>.</li>'+
+    '<li>Сумма ежемесячного платежа в течение '+c.months+' месяцев составляет <b>'+fmt(c.monthly)+
+      '</b> ('+toWords(c.monthly)+') рублей.</li>'+
+    '<li>Окончательный день оплаты <b>'+fmtDate(lastDate)+'</b>.</li>'+
+    '<li>В случае резкого удешевления рубля (девальвация) в период действия договора, будем рассматривать этот вопрос в Шариатском суде.</li>'+
+    '<li>Настоящий Договор вступает в силу с момента его подписания Сторонами.</li>'+
+    '<li>Покупатель обязуется в течение 24 (двадцати четырех) часов с момента получения настоящего Договора в электронном виде распечатать, лично подписать, поставить дату и направить скан-копию подписанного Договора на адрес электронной почты.</li>'+
+    '<li>Покупателю строго запрещается использовать Товар для получения наличных денежных средств (обналичивания).</li>'+
+    '<li>В случае выявления факта использования Товара в целях обналичивания, Покупатель несет полную ответственность перед Всевышним Аллахом, влекущую утрату Барака (Божественной благодати) в сделке.</li>'+
+    '<li>Если Покупатель не имеет возможности осуществить платеж в срок, он обязуется не позднее 3 рабочих дней до наступления даты платежа уведомить об этом Продавца.</li>'+
+    '<li>Настоящий Договор заключён в соответствии с нормами Исламского права (Шариата), что делает его дозволенным (халяль).</li>'+
+    '<li>Стороны осознают, что неисполнение условий Договора влечёт ответственность перед Всевышним.</li>'+
+    '<li>Как пришло в Хадисе: «У нечестного нет веры, у не исполняющего обещаний нет религии». Нарушение Договора является признаком вероломства и лицемерия.</li>'+
+    '</ul>'+
+    '<h3 style="margin-top:20px">График платежей</h3>'+
+    '<table><tr><th>Дата</th><th>Сумма</th></tr>'+rows+'</table>'+
+    '<div class="signatures">'+
+    '<div class="sign-row">'+
+    '<div class="sign-col"><div>'+sellerName+'</div><div class="sign-line"></div><div class="sign-label">(подпись)</div></div>'+
+    '<div class="sign-col"><div>'+(cl.name||'—')+'</div><div class="sign-line"></div><div class="sign-label">(подпись)</div></div>'+
+    '</div>'+
+    '<div class="sign-row">'+
+    '<div class="sign-col"><div>'+(sellerWitness||'Свидетель')+'</div><div class="sign-line"></div><div class="sign-label">(подпись)</div></div>'+
+    '<div class="sign-col"></div>'+
+    '</div></div>';
+
+  setTimeout(()=>window.print(),100);
+}
+
+/* Число прописью (упрощённое) */
+function toWords(n){
+  const ones=['','один','два','три','четыре','пять','шесть','семь','восемь','девять',
+    'десять','одиннадцать','двенадцать','тринадцать','четырнадцать','пятнадцать',
+    'шестнадцать','семнадцать','восемнадцать','девятнадцать'];
+  const tens=['','','двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'];
+  const hunds=['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
+  const n2=Math.round(n);
+  if(n2===0)return 'ноль';
+  if(n2<20)return ones[n2];
+  if(n2<100){const t=Math.floor(n2/10);const o=n2%10;
+    return tens[t]+(o?' '+ones[o]:'');}
+  if(n2<1000){const h=Math.floor(n2/100);const r=n2%100;
+    return hunds[h]+(r?' '+toWords(r):'');}
+  if(n2<1000000){const t=Math.floor(n2/1000);const r=n2%1000;
+    return toWords(t)+' тысяч'+(r?' '+toWords(r):'');}
+  const m=Math.floor(n2/1000000);const r=n2%1000000;
+  return toWords(m)+' миллион'+(r?' '+toWords(r):'');
+}
+
+/* === WHATSAPP === */
+function whatsappSchedule(cid){
+  const c=DB.contracts.find(x=>x.id===cid);
+  const cl=DB.clients.find(x=>x.id===c.clientId)||{};
+  const phone=(cl.phone||'').replace(/\D/g,'');
+  const rows=(c.schedule||[]).map(p=>
+    '• '+fmtDate(p.date)+' — '+fmtR(p.amount)+(p.paid?' ✅':'')).join('\n');
+  const text='Ассаляму алейкум, '+(cl.name||'')+'!\n\n'+
+    'Ваш договор на «'+c.product+'»\n'+
+    'Сумма: '+fmtR(c.total)+'\n'+
+    'Платёж: '+fmtR(c.monthly)+' × '+c.months+' мес.\n\n'+
+    'График платежей:\n'+rows+'\n\n'+
+    'Баракаллаху фикум!';
+  const url=phone?'https://wa.me/'+phone+'?text='+encodeURIComponent(text):
+    'https://wa.me/?text='+encodeURIComponent(text);
+  window.open(url,'_blank');
+}
 </script>
 </body>
 </html>  
