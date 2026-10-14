@@ -493,8 +493,251 @@ label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;
 <div id="printArea"></div>
 
 <script>
-/* === ЧАСТЬ 2 (ядро) — придёт следующим сообщением === */
-/* Пока файл не будет работать — ждите Часть 2 */
+const DB_KEY='summa_db_v3';
+const MASTER_PIN='0537';
+let DB=null,ROLE=null,AUTHED=false;
+let CONTRACT_TAB='active';
+let CAL_DATE=new Date();
+
+function loadDB(){
+  try{const r=localStorage.getItem(DB_KEY);if(r)return JSON.parse(r);}catch(e){}
+  return{
+    clients:[],contracts:[],partners:[],categories:['Телефоны','Мебель','Бытовая техника','Одежда','Электроника'],
+    audit:[],pins:{owner:'0537'},
+    created:new Date().toISOString()
+  };
+}
+function saveDB(){localStorage.setItem(DB_KEY,JSON.stringify(DB));}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+const fmtR=n=>fmt(n)+' ₽';
+const todayISO=()=>new Date().toISOString().slice(0,10);
+const monthPrefix=()=>{const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const parseD=s=>{if(!s)return new Date();const[y,m,d]=s.split('-').map(Number);
+  return new Date(y,m-1,d);};
+const fmtDate=s=>{if(!s)return'—';const d=typeof s==='string'?parseD(s):s;
+  return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});};
+
+function toast(m){const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2000);}
+function logAudit(a,d){DB.audit.unshift({id:uid(),action:a,details:d,role:ROLE||'owner',
+  date:new Date().toISOString()});if(DB.audit.length>500)DB.audit.length=500;saveDB();}
+
+/* === ВХОД === */
+function tryLogin(){
+  const pin=document.getElementById('pinInput').value.trim();
+  if(pin===MASTER_PIN){
+    AUTHED=true;ROLE='owner';
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    document.getElementById('whoAmI').textContent='Владелец';
+    refreshAll();
+  }else{toast('Неверный PIN');document.getElementById('pinInput').value='';}
+}
+function logout(){
+  if(!confirm('Выйти из приложения?'))return;
+  AUTHED=false;ROLE=null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('pinInput').value='';
+}
+
+/* === НАВИГАЦИЯ === */
+function nav(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const el=document.getElementById('screen-'+s);if(el)el.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.querySelector('.nav-btn[data-screen="'+s+'"]');
+  if(nb)nb.classList.add('active');
+  document.getElementById('topbar').style.display=s==='summary'?'none':'flex';
+  window.scrollTo(0,0);refreshAll();
+}
+
+/* === МОДАЛКА === */
+function openModal(t,h){
+  document.getElementById('modalTitle').textContent=t;
+  document.getElementById('modalBody').innerHTML=h;
+  document.getElementById('modalBg').classList.add('active');}
+function closeModal(){document.getElementById('modalBg').classList.remove('active');}
+
+/* === ОБНОВЛЕНИЕ === */
+function refreshAll(){
+  renderSummary();renderClients();renderContracts();renderCalendar();
+}
+
+/* === СВОДКА === */
+function renderSummary(){
+  const act=DB.contracts.filter(c=>c.status==='active');
+  const turnover=act.reduce((s,c)=>s+(c.total||0),0);
+  const mp=monthPrefix();
+  const collected=DB.contracts.flatMap(c=>c.schedule||[])
+    .filter(p=>p.paid&&p.paidDate&&p.paidDate.startsWith(mp))
+    .reduce((s,p)=>s+(p.amount||0),0);
+  const expected=DB.contracts.flatMap(c=>c.schedule||[])
+    .filter(p=>!p.paid&&p.date&&p.date.startsWith(mp))
+    .reduce((s,p)=>s+(p.amount||0),0);
+  let overdue=0;const oc=new Set();const now=new Date();
+  DB.contracts.forEach(c=>(c.schedule||[]).forEach(p=>{
+    if(!p.paid&&p.date&&parseD(p.date)<now){
+      overdue+=p.amount||0;oc.add(c.clientId||c.id);}
+  }));
+  document.getElementById('s-turnover').textContent=fmt(turnover);
+  document.getElementById('s-collected').textContent=fmt(collected);
+  document.getElementById('s-expected').textContent=fmtR(expected);
+  const card=document.getElementById('s-overdue-card');
+  if(overdue>0){card.style.display='block';
+    document.getElementById('s-overdue').textContent=fmt(overdue);
+    document.getElementById('s-overdue-hint').textContent=oc.size+' должников';
+  }else card.style.display='none';
+
+  const rl=document.getElementById('recentList');
+  const list=[...DB.contracts].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,5);
+  if(!list.length){rl.innerHTML='<div class="card"><div class="empty-title">'+
+    'Договоров пока нет</div><div class="empty-desc">Нажмите «Новый договор», '+
+    'чтобы создать первый.</div></div>';return;}
+  rl.innerHTML=list.map(c=>{
+    const cl=DB.clients.find(x=>x.id===c.clientId);
+    return '<div class="list-item" onclick="openContract(\''+c.id+'\')">'+
+      '<div class="main"><div class="title">'+(cl?cl.name:'—')+'</div>'+
+      '<div class="sub">'+(c.product||'—')+' · '+fmtR(c.total)+'</div></div>'+
+      '<div style="color:var(--muted)">›</div></div>';
+  }).join('');
+}
+
+/* === КЛИЕНТЫ === */
+function renderClients(){
+  const q=(document.getElementById('clientSearch').value||'').toLowerCase();
+  const list=DB.clients.filter(c=>!q||c.name.toLowerCase().includes(q)||
+    (c.phone||'').includes(q));
+  const el=document.getElementById('clientsList');
+  if(!list.length){el.innerHTML='<div class="card"><div class="empty-title">'+
+    'Клиентов пока нет</div><div class="empty-desc">С клиента начинается '+
+    'договор. Добавьте первого.</div><button class="btn btn-dark" '+
+    'onclick="openClientForm()">Добавить первого</button></div>';return;}
+  el.innerHTML=list.map(c=>{
+    const ini=(c.name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    return '<div class="list-item" onclick="openClientCard(\''+c.id+'\')">'+
+      '<div style="display:flex;align-items:center;gap:12px;flex:1">'+
+      '<div class="avatar">'+ini+'</div><div class="main">'+
+      '<div class="title">'+c.name+'</div>'+
+      '<div class="sub">'+(c.phone||'—')+'</div></div></div>'+
+      '<div style="color:var(--muted)">›</div></div>';
+  }).join('');
+}
+function openClientForm(){
+  openModal('Новый клиент',
+    '<div class="field"><label>ФИО</label><input id="cf-name" placeholder="Фамилия Имя Отчество"></div>'+
+    '<div class="field"><label>Телефон</label><input id="cf-phone" type="tel" placeholder="+7..."></div>'+
+    '<div class="field"><label>Дата рождения</label><input id="cf-birth" type="date"></div>'+
+    '<div class="field"><label>Адрес</label><input id="cf-address"></div>'+
+    '<div class="field"><label>Паспорт (серия, номер, кем, когда)</label><input id="cf-passport"></div>'+
+    '<div class="field"><label>Свидетель (ФИО)</label><input id="cf-witness"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="saveClient()">Сохранить</button>');
+}
+function saveClient(){
+  const name=document.getElementById('cf-name').value.trim();
+  if(!name){toast('Введите имя');return;}
+  const cl={
+    id:uid(),name,
+    phone:document.getElementById('cf-phone').value.trim(),
+    birth:document.getElementById('cf-birth').value||'',
+    address:document.getElementById('cf-address').value.trim(),
+    passport:document.getElementById('cf-passport').value.trim(),
+    witness:document.getElementById('cf-witness').value.trim(),
+    createdAt:new Date().toISOString()
+  };
+  DB.clients.push(cl);
+  saveDB();logAudit('Клиент добавлен',name);
+  closeModal();refreshAll();toast('Клиент добавлен');
+  window._lastClientId=cl.id;
+}
+function openClientCard(id){
+  const c=DB.clients.find(x=>x.id===id);if(!c)return;
+  const cts=DB.contracts.filter(x=>x.clientId===id);
+  openModal(c.name,
+    (c.phone?'<div style="color:var(--muted);margin-bottom:6px">📞 '+c.phone+'</div>':'')+
+    (c.birth?'<div style="color:var(--muted);margin-bottom:6px">🎂 '+fmtDate(c.birth)+'</div>':'')+
+    (c.address?'<div style="color:var(--muted);margin-bottom:6px">📍 '+c.address+'</div>':'')+
+    (c.passport?'<div style="color:var(--muted);margin-bottom:6px">🪪 '+c.passport+'</div>':'')+
+    (c.witness?'<div style="color:var(--muted);margin-bottom:6px">👤 Свидетель: '+c.witness+'</div>':'')+
+    '<div style="margin:14px 0"><b>Договоров: '+cts.length+'</b></div>'+
+    (c.phone?'<button class="btn btn-outline btn-block" style="margin-bottom:10px" '+
+      'onclick="waClient(\''+id+'\')">📲 WhatsApp</button>':'')+
+    '<button class="btn btn-outline btn-block" style="margin-bottom:10px" '+
+      'onclick="editClient(\''+id+'\')">Редактировать</button>'+
+    '<button class="btn btn-outline btn-block" style="color:var(--danger)" '+
+      'onclick="deleteClient(\''+id+'\')">Удалить</button>');
+}
+function waClient(id){
+  const c=DB.clients.find(x=>x.id===id);
+  const phone=(c.phone||'').replace(/\D/g,'');
+  window.open('https://wa.me/'+phone,'_blank');
+}
+function editClient(id){
+  const c=DB.clients.find(x=>x.id===id);
+  openModal('Изменить клиента',
+    '<div class="field"><label>ФИО</label><input id="cf-name" value="'+(c.name||'')+'"></div>'+
+    '<div class="field"><label>Телефон</label><input id="cf-phone" value="'+(c.phone||'')+'"></div>'+
+    '<div class="field"><label>Дата рождения</label><input id="cf-birth" type="date" value="'+(c.birth||'')+'"></div>'+
+    '<div class="field"><label>Адрес</label><input id="cf-address" value="'+(c.address||'')+'"></div>'+
+    '<div class="field"><label>Паспорт</label><input id="cf-passport" value="'+(c.passport||'')+'"></div>'+
+    '<div class="field"><label>Свидетель</label><input id="cf-witness" value="'+(c.witness||'')+'"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="updateClient(\''+id+'\')">Сохранить</button>');
+}
+function updateClient(id){
+  const c=DB.clients.find(x=>x.id===id);
+  c.name=document.getElementById('cf-name').value.trim();
+  c.phone=document.getElementById('cf-phone').value.trim();
+  c.birth=document.getElementById('cf-birth').value||'';
+  c.address=document.getElementById('cf-address').value.trim();
+  c.passport=document.getElementById('cf-passport').value.trim();
+  c.witness=document.getElementById('cf-witness').value.trim();
+  saveDB();logAudit('Клиент изменён',c.name);
+  closeModal();refreshAll();toast('Изменения сохранены');
+}
+function deleteClient(id){
+  if(!confirm('Удалить клиента?'))return;
+  DB.clients=DB.clients.filter(x=>x.id!==id);saveDB();closeModal();
+  refreshAll();toast('Удалён');
+}
+
+/* === ДОГОВОРЫ (заготовка для Части 3) === */
+function switchTab(t){
+  CONTRACT_TAB=t;
+  document.querySelectorAll('#screen-contracts .tabs button')
+    .forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  renderContracts();
+}
+function renderContracts(){
+  const list=DB.contracts.filter(c=>
+    CONTRACT_TAB==='active'?c.status==='active':c.status==='closed');
+  const el=document.getElementById('contractsList');
+  if(!list.length){el.innerHTML='<div class="card"><div class="empty-title">'+
+    (CONTRACT_TAB==='active'?'Договоров пока нет':'Архив пуст')+
+    '</div><div class="empty-desc">'+(CONTRACT_TAB==='active'?
+    'Нажмите «Новый договор» выше.':'Здесь будут закрытые договоры.')+
+    '</div></div>';return;}
+  el.innerHTML=list.map(c=>{
+    const cl=DB.clients.find(x=>x.id===c.clientId);
+    const paid=(c.schedule||[]).filter(p=>p.paid).length;
+    const total=(c.schedule||[]).length;
+    const pct=total?Math.round(paid/total*100):0;
+    return '<div class="list-item" onclick="openContract(\''+c.id+'\')">'+
+      '<div class="main"><div class="title">'+(cl?cl.name:'—')+'</div>'+
+      '<div class="sub">'+(c.product||'—')+' · '+fmtR(c.total)+'</div>'+
+      '<div class="progress"><div style="width:'+pct+'%"></div></div>'+
+      '<div class="sub">'+paid+'/'+total+' мес</div></div>'+
+      '<div style="color:var(--muted)">›</div></div>';
+  }).join('');
+}
+
+/* === СТАРТ === */
+DB=loadDB();
+document.getElementById('pinInput').addEventListener('keypress',e=>{
+  if(e.key==='Enter')tryLogin();
+});
 </script>
 </body>
 </html>  
