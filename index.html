@@ -10,6 +10,7 @@
 :root{
   --bg:#f0f1ec;--card:#fff;--dark:#2d3a34;--lime:#c8dd5f;
   --text:#1a1f1c;--muted:#7a8079;--line:#e5e6e0;--danger:#c94a3f;
+  --green:#5a7522;--red:#8a2f22;--yellow:#8a6a1f;
 }
 html,body{background:var(--bg);color:var(--text);font-size:15px;
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
@@ -47,6 +48,7 @@ body{padding-bottom:90px;}
 .btn-lime{background:var(--lime);color:var(--dark);}
 .btn-block{width:100%;}
 .btn-sm{padding:9px 14px;font-size:13px;border-radius:11px;}
+.btn-lg{padding:18px 24px;font-size:17px;border-radius:18px;}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
 .search{width:100%;padding:14px 18px;border-radius:14px;
   border:1px solid var(--line);background:var(--card);font-size:15px;
@@ -113,12 +115,6 @@ label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;
 .login-box h1{font-size:26px;font-weight:800;margin-bottom:6px;}
 .login-box p{color:var(--muted);font-size:14px;line-height:1.5;
   margin-bottom:24px;}
-.role-switch{display:flex;gap:6px;background:var(--bg);padding:4px;
-  border-radius:14px;margin-bottom:16px;}
-.role-switch button{flex:1;padding:10px;border-radius:11px;border:none;
-  background:none;font-weight:600;font-size:14px;color:var(--muted);
-  font-family:inherit;cursor:pointer;}
-.role-switch button.active{background:var(--dark);color:#fff;}
 .pin-input{text-align:center;font-size:22px;letter-spacing:10px;
   font-weight:700;padding:14px;}
 .login-hint{color:var(--muted);font-size:12px;line-height:1.7;
@@ -130,31 +126,65 @@ label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;
 .toast.show{opacity:1;}
 .divider{height:1px;background:var(--line);margin:24px 0;border:none;}
 .section-label{font-size:15px;font-weight:700;margin:24px 0 12px;}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
-.chip{padding:9px 16px;border-radius:12px;background:var(--card);
-  border:1px solid var(--line);font-size:14px;font-weight:600;
-  cursor:pointer;color:var(--text);font-family:inherit;}
-.chip.active{background:var(--dark);color:var(--lime);border-color:var(--dark);}
-.slider-block{margin-bottom:20px;}
-.slider-block .val{font-size:24px;font-weight:800;color:var(--text);
-  margin-bottom:10px;letter-spacing:-.4px;}
-input[type=range]{-webkit-appearance:none;width:100%;height:6px;
-  background:var(--line);border-radius:3px;padding:0;margin:0;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;
-  height:26px;background:var(--dark);border-radius:50%;cursor:pointer;
-  border:3px solid var(--lime);box-shadow:0 1px 4px rgba(0,0,0,.2);}
-input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark);
-  border-radius:50%;cursor:pointer;border:3px solid var(--lime);}
-.calc-result{background:var(--dark);color:#fff;border-radius:20px;
-  padding:18px;margin-bottom:14px;}
-.calc-result .line{display:flex;justify-content:space-between;
-  padding:6px 0;font-size:14px;opacity:.85;}
-.calc-result .line.big{font-size:22px;font-weight:800;opacity:1;
-  border-top:1px solid rgba(255,255,255,.2);margin-top:6px;padding-top:14px;
-  color:var(--lime);}
+
+/* Калькулятор как lariba */
+.calc-box{background:linear-gradient(135deg,#2d3a34 0%,#1a241f 100%);
+  color:#fff;border-radius:24px;padding:22px 20px;margin-bottom:14px;}
+.calc-box .calc-title{font-size:22px;font-weight:800;margin-bottom:18px;
+  letter-spacing:-.4px;}
+.calc-box .lbl{font-size:14px;font-weight:600;margin-bottom:8px;opacity:.9;}
+.calc-box .num-field{background:#fff;color:var(--dark);border-radius:12px;
+  padding:14px 16px;font-size:20px;font-weight:700;text-align:right;
+  border:none;width:100%;margin-bottom:6px;}
+.calc-box input[type=range]{-webkit-appearance:none;width:100%;height:6px;
+  background:rgba(255,255,255,.25);border-radius:3px;padding:0;margin:0 0 18px;display:block;}
+.calc-box input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  width:26px;height:26px;background:#fff;border-radius:50%;cursor:pointer;
+  border:3px solid var(--lime);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.calc-box input[type=range]::-moz-range-thumb{width:22px;height:22px;
+  background:#fff;border-radius:50%;cursor:pointer;border:3px solid var(--lime);}
+.calc-result-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+  margin-bottom:16px;}
+.calc-result-row .cell{background:rgba(255,255,255,.1);border-radius:14px;
+  padding:12px 8px;text-align:center;}
+.calc-result-row .cell .k{font-size:10px;opacity:.75;margin-bottom:6px;
+  line-height:1.2;font-weight:600;}
+.calc-result-row .cell .v{font-size:16px;font-weight:800;color:var(--lime);}
+.calc-box .btn-white{background:#fff;color:var(--dark);border-radius:14px;
+  padding:16px;font-weight:700;font-size:15px;border:none;width:100%;
+  cursor:pointer;font-family:inherit;}
+
+/* Большая кнопка калькулятора на главной */
+.calc-hero{background:linear-gradient(135deg,var(--dark) 0%,#1a241f 100%);
+  color:#fff;border-radius:22px;padding:22px;margin-bottom:14px;
+  display:flex;align-items:center;gap:16px;cursor:pointer;}
+.calc-hero:active{opacity:.9;}
+.calc-hero .ico{width:56px;height:56px;border-radius:16px;background:var(--lime);
+  color:var(--dark);display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;flex-shrink:0;}
+.calc-hero .txt{flex:1;}
+.calc-hero .txt .t{font-size:17px;font-weight:800;margin-bottom:2px;}
+.calc-hero .txt .s{font-size:13px;opacity:.7;}
+
+/* Календарь */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;}
+.cal-head{font-size:10px;text-align:center;color:var(--muted);font-weight:700;
+  padding:6px 0;}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:13px;border-radius:10px;background:var(--card);font-weight:500;
+  cursor:pointer;position:relative;}
+.cal-day.empty{visibility:hidden;}
+.cal-day.has-unpaid{background:#e5f0d0;color:#5a7522;font-weight:700;}
+.cal-day.overdue{background:#f5d4cf;color:#8a2f22;font-weight:700;}
+.cal-day.paid{background:#eef0ea;color:var(--muted);text-decoration:line-through;}
+.cal-day.today{border:2px solid var(--dark);}
+
+/* Прогресс */
 .progress{height:8px;background:var(--line);border-radius:4px;overflow:hidden;
   margin:8px 0;}
 .progress > div{height:100%;background:var(--dark);border-radius:4px;}
+
+/* График платежей */
 .schedule-row{display:flex;justify-content:space-between;align-items:center;
   padding:12px 0;border-bottom:1px solid var(--line);}
 .schedule-row:last-child{border-bottom:none;}
@@ -165,16 +195,22 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
 .schedule-row.paid .amt{text-decoration:line-through;opacity:.6;}
 .schedule-row.overdue .date{color:var(--danger);}
 .schedule-row.overdue .amt{color:var(--danger);}
-.check{font-size:20px;flex-shrink:0;}
-.link-box{background:#f8fafc;border:1px dashed var(--line);border-radius:12px;
-  padding:12px;font-size:12px;word-break:break-all;font-family:monospace;
-  color:var(--text);margin:10px 0;}
+.check{font-size:20px;flex-shrink:0;cursor:pointer;}
+
+/* Табы */
 .tabs{display:flex;gap:6px;background:var(--card);padding:4px;
   border-radius:14px;margin-bottom:14px;}
 .tabs button{flex:1;padding:9px;border:none;background:none;border-radius:10px;
   font-weight:600;font-size:13px;color:var(--muted);cursor:pointer;
   font-family:inherit;}
 .tabs button.active{background:var(--dark);color:var(--lime);}
+
+/* Ссылка */
+.link-box{background:#f8fafc;border:1px dashed var(--line);border-radius:12px;
+  padding:12px;font-size:12px;word-break:break-all;font-family:monospace;
+  color:var(--text);margin:10px 0;}
+
+/* Печать */
 @media print{
   body *{visibility:hidden;}
   #printArea,#printArea *{visibility:visible;}
@@ -193,42 +229,53 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
   #printArea .sign-line{border-bottom:1px solid black;height:30px;
     margin-bottom:4px;}
   #printArea .sign-label{font-size:9pt;color:#555;text-align:center;}
+  #printArea table{width:100%;border-collapse:collapse;margin-top:10px;}
+  #printArea th,#printArea td{border:1px solid black;padding:6px;
+    text-align:left;font-size:10pt;}
 }
 #printArea{display:none;}
 </style>
 </head>
 <body>
 
+<!-- ВХОД -->
 <div id="loginScreen" class="login-wrap">
   <div class="login-box">
     <div class="brand-mark">Σ</div>
     <h1>СУММА</h1>
     <p>Учёт товарной рассрочки:<br>клиенты, договоры и платежи по месяцам.</p>
-    <div class="role-switch" id="roleSwitch">
-      <button data-role="owner" class="active">Владелец</button>
-      <button data-role="shop">Магазин</button>
-    </div>
     <input type="password" id="pinInput" class="pin-input" maxlength="4"
       inputmode="numeric" placeholder="••••">
     <button class="btn btn-dark btn-block" onclick="tryLogin()">Войти</button>
     <div class="login-hint">
-      Владелец: <b>1111</b> · Магазин: <b>2222</b>
+      PIN-код: <b>0537</b>
     </div>
   </div>
 </div>
 
+<!-- ПРИЛОЖЕНИЕ -->
 <div id="appScreen" style="display:none">
 <div class="app">
   <div class="topbar" id="topbar" style="display:none">
     <div class="brand"><div class="sigma">Σ</div>
       <div class="name">СУММА</div></div>
-    <div class="icon-btn" onclick="toast('Поиск — скоро')">🔍</div>
+    <div class="icon-btn" onclick="openSearch()">🔍</div>
   </div>
 
   <!-- СВОДКА -->
   <div id="screen-summary" class="screen active">
     <h1 class="screen-title">Сводка</h1>
     <p class="screen-sub">Оборот, ожидания и долги по всем договорам.</p>
+
+    <div class="calc-hero" onclick="nav('calc')">
+      <div class="ico">Σ</div>
+      <div class="txt">
+        <div class="t">Калькулятор рассрочки</div>
+        <div class="s">Рассчитать и оформить договор</div>
+      </div>
+      <div style="opacity:.6;font-size:20px">›</div>
+    </div>
+
     <div class="card">
       <div class="card-label">Капитал в обороте</div>
       <div class="big-number"><span id="s-turnover">0</span>
@@ -247,11 +294,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
         <span id="s-overdue">0</span> <span class="cur">₽</span></div>
       <div class="card-hint" id="s-overdue-hint">—</div>
     </div>
-    <div class="btn-row" style="margin-top:20px">
-      <button class="btn btn-dark" style="flex:1"
-        onclick="openNewContract()">Новый договор</button>
-      <button class="btn btn-outline" onclick="nav('calc')">🧮</button>
-    </div>
+    <button class="btn btn-dark btn-block btn-lg" style="margin-top:14px"
+      onclick="openNewContract()">+ Новый договор</button>
     <div class="section-label">Последние договоры</div>
     <div id="recentList"></div>
   </div>
@@ -259,8 +303,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
   <!-- КЛИЕНТЫ -->
   <div id="screen-clients" class="screen">
     <h1 class="screen-title">Клиенты</h1>
-    <p class="screen-sub">С клиента начинается договор: сначала заводится
-      человек, потом на него оформляется рассрочка.</p>
+    <p class="screen-sub">С клиента начинается договор.</p>
     <button class="btn btn-dark" style="margin-bottom:16px"
       onclick="openClientForm()">Добавить</button>
     <input type="search" class="search" id="clientSearch"
@@ -271,71 +314,71 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
   <!-- ДОГОВОРЫ -->
   <div id="screen-contracts" class="screen">
     <h1 class="screen-title">Договоры</h1>
-    <p class="screen-sub">Активные и архив. Откройте договор для графика
-      платежей.</p>
     <div class="tabs">
       <button class="active" data-tab="active"
         onclick="switchTab('active')">Активные</button>
       <button data-tab="closed" onclick="switchTab('closed')">Архив</button>
     </div>
     <button class="btn btn-dark" style="margin-bottom:14px"
-      onclick="openNewContract()">Новый договор</button>
+      onclick="openNewContract()">+ Новый договор</button>
     <div id="contractsList"></div>
   </div>
 
   <!-- КАЛЬКУЛЯТОР -->
   <div id="screen-calc" class="screen">
-    <h1 class="screen-title">Калькулятор</h1>
-    <p class="screen-sub">Наценка 5% в месяц. Наценка = Финанс × 5% × Срок.</p>
+    <h1 class="screen-title" style="display:none">Калькулятор</h1>
 
-    <div class="slider-block">
-      <label>Стоимость товара</label>
-      <div class="val" id="c-price-v">50 000 ₽</div>
-      <input type="range" id="c-price" min="5000" max="500000" step="1000"
-        value="50000" oninput="updateCalc()">
-    </div>
-    <div class="slider-block">
-      <label>Первоначальный взнос</label>
-      <div class="val" id="c-down-v">0 ₽</div>
-      <input type="range" id="c-down" min="0" max="250000" step="1000"
-        value="0" oninput="updateCalc()">
-    </div>
+    <div class="calc-box">
+      <div class="calc-title">Рассчитайте рассрочку</div>
 
-    <label>Срок рассрочки</label>
-    <div class="chips" id="c-months">
-      <button class="chip" onclick="setMonths(this,3)">3 мес</button>
-      <button class="chip active" onclick="setMonths(this,6)">6 мес</button>
-      <button class="chip" onclick="setMonths(this,9)">9 мес</button>
-      <button class="chip" onclick="setMonths(this,12)">12 мес</button>
-    </div>
+      <div class="lbl">Стоимость товара или услуги:</div>
+      <input type="text" class="num-field" id="c-price-v" value="50 000 ₽"
+        onfocus="editNum('price')" onblur="applyNum('price')">
+      <input type="range" id="c-price" min="1000" max="1000000" step="1000"
+        value="50000" oninput="syncFromRange('price')">
 
-    <div class="calc-result">
-      <div class="line" style="font-size:13px">Ежемесячный платёж</div>
-      <div class="line big"><span id="c-monthly">0 ₽</span></div>
-      <div class="line"><span>Наценка (5% × мес)</span>
-        <span id="c-markup">0 ₽</span></div>
-      <div class="line"><span>Общая стоимость</span>
-        <span id="c-total">0 ₽</span></div>
-    </div>
+      <div class="lbl">Первоначальный взнос (мин. 20%):</div>
+      <input type="text" class="num-field" id="c-down-v" value="10 000 ₽"
+        onfocus="editNum('down')" onblur="applyNum('down')">
+      <input type="range" id="c-down" min="0" max="1000000" step="1000"
+        value="10000" oninput="syncFromRange('down')">
 
-    <button class="btn btn-dark btn-block" onclick="createFromCalc()">
-      Создать договор с этими условиями</button>
+      <div class="lbl">Срок рассрочки (мес.):</div>
+      <input type="text" class="num-field" id="c-months-v" value="6"
+        onfocus="editNum('months')" onblur="applyNum('months')">
+      <input type="range" id="c-months" min="1" max="24" step="1"
+        value="6" oninput="syncFromRange('months')">
+
+      <div class="calc-result-row">
+        <div class="cell"><div class="k">Ежемес.<br>платёж</div>
+          <div class="v" id="c-monthly">0 ₽</div></div>
+        <div class="cell"><div class="k">Торговая<br>наценка</div>
+          <div class="v" id="c-markup">0 ₽</div></div>
+        <div class="cell"><div class="k">Общая<br>стоимость</div>
+          <div class="v" id="c-total">0 ₽</div></div>
+      </div>
+
+      <button class="btn-white" onclick="openClientFormFromCalc()">
+        Заполнить анкету</button>
+    </div>
   </div>
 
   <!-- КАЛЕНДАРЬ -->
   <div id="screen-calendar" class="screen">
-    <h1 class="screen-title">Календарь</h1>
-    <p class="screen-sub">Какого числа сколько придёт и от кого.</p>
+    <h1 class="screen-title">Календарь платежей</h1>
+    <p class="screen-sub">Какого числа сколько придёт и от кого.
+      Гранатовые дни уже прошли.</p>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <button class="btn btn-outline btn-sm" onclick="calShift(-1)">←</button>
-        <div style="font-weight:700" id="calTitle">—</div>
-        <button class="btn btn-outline btn-sm" onclick="calShift(1)">→</button>
+        <button class="btn btn-outline btn-sm" onclick="calShift(-1)">‹</button>
+        <div style="font-weight:700;text-transform:lowercase" id="calTitle">—</div>
+        <button class="btn btn-outline btn-sm" onclick="calShift(1)">›</button>
       </div>
       <div style="text-align:center;margin-top:14px">
-        <div style="color:var(--muted);font-size:12px">Ожидается за месяц</div>
         <div style="font-size:24px;font-weight:800;color:var(--dark)"
           id="calSum">0 ₽</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:4px"
+          id="calSumLabel">за месяц</div>
       </div>
     </div>
     <div class="card" id="calGrid"></div>
@@ -345,31 +388,53 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
   <!-- ЕЩЁ -->
   <div id="screen-more" class="screen">
     <h1 class="screen-title">Ещё</h1>
+
     <div class="list-item" onclick="openOverdue()">
       <div class="main"><div class="title">Возраст просрочки</div>
         <div class="sub">Долги по срокам</div></div>
       <div style="color:var(--muted)">›</div>
     </div>
-    <div class="list-item" onclick="toast('Скоро')">
-      <div class="main"><div class="title">Архив договоров</div></div>
+    <div class="list-item" onclick="nav('contracts')">
+      <div class="main"><div class="title и">Архив договоров</div>
+        <div class="sub мар">Закрытые и списанжаные</div></div>
+      <div style</="color:var(--muted)">›</div>
+    </divdiv>
+    <div class="list-item" onclick="openAudit>
+()">
+      <div class="main"><div class="title">Журнал действий</div>
+        <div class="sub">Кто и когда менял статусы</div></div>
       <div style="color:var(--muted)">›</div>
     </div>
-    <div class="list-item" onclick="openAudit()">
-      <div class="main"><div class="title">Журнал действий</div></div>
+    <div class="list-item" onclick="openGoods()">
+      <div class="main"><div class="title">Товары        <div class="sub">Категории и статистика</div></div>
       <div style="color:var(--muted)">›</div>
     </div>
+    <div class="list-item" onclick="openPartners()">
+      <div class="main"><div class="title">Займодатели</div>
+        <div class="sub">Чьи деньги в сделках</div></div>
+      <div style="color:var(--muted)">›</div>
+    </div>
+
     <hr class="divider">
+
+    <div class="list-item" onclick="sendClientLink()">
+      <div class="main"><div class="title">📲 Ссылка клиенту</div>
+        <div class="sub">Калькулятор + анкета</div></div>
+      <div style="color:var(--muted)">›</div>
+    </div>
     <div class="list-item" onclick="exportData()">
       <div class="main"><div class="title">📤 Отправить владельцу</div>
-        <div class="sub">Экспорт JSON для WhatsApp</div></div>
+        <div class="sub">Экспорт JSON в WhatsApp</div></div>
       <div style="color:var(--muted)">›</div>
     </div>
     <div class="list-item" onclick="importData()">
-      <div class="main"><div class="title">📥 Импорт от сотрудника</div>
-        <div class="sub">Загрузить JSON</div></div>
+      <div class="main"><div class="title">📥 Импорт JSON</div>
+        <div class="sub">Загрузить присланный файл</div></div>
       <div style="color:var(--muted)">›</div>
     </div>
+
     <hr class="divider">
+
     <div style="display:flex;align-items:center;justify-content:space-between;
       padding:8px 0">
       <div style="color:var(--muted);font-size:14px" id="whoAmI">—</div>
@@ -378,6 +443,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
   </div>
 </div>
 
+<!-- НИЖНЯЯ НАВИГАЦИЯ -->
 <div class="bottom-nav">
   <div class="bottom-nav-inner">
     <button class="nav-btn active" data-screen="summary" onclick="nav('summary')">
@@ -398,14 +464,11 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
         <line x1="16" y1="13" x2="8" y2="13"/>
         <line x1="16" y1="17" x2="8" y2="17"/></svg>
     </button>
-    <button class="nav-btn" data-screen="calc" onclick="nav('calc')">
-      <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/>
-        <line x1="8" y1="6" x2="16" y2="6"/>
-        <line x1="8" y1="10" x2="10" y2="10"/>
-        <line x1="14" y1="10" x2="16" y2="10"/>
-        <line x1="8" y1="14" x2="10" y2="14"/>
-        <line x1="14" y1="14" x2="16" y2="14"/>
-        <line x1="8" y1="18" x2="16" y2="18"/></svg>
+    <button class="nav-btn" data-screen="calendar" onclick="nav('calendar')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/></svg>
     </button>
     <button class="nav-btn" data-screen="more" onclick="nav('more')">
       <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/>
@@ -430,576 +493,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--dark
 <div id="printArea"></div>
 
 <script>
-const DB_KEY='summa_db_v2';
-let DB=null,ROLE=null,SELECTED_ROLE='owner';
-let CONTRACT_TAB='active';
-let CAL_DATE=new Date();
-let CAL_SEL=null;
-let _months=6;
-
-function loadDB(){
-  try{const r=localStorage.getItem(DB_KEY);if(r)return JSON.parse(r);}catch(e){}
-  return{clients:[],contracts:[],partners:[],audit:[],pendingPayments:[],
-    pins:{owner:'1111',shop:'2222'}};
-}
-function saveDB(){localStorage.setItem(DB_KEY,JSON.stringify(DB));}
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-const fmt=n=>Math.round(n).toLocaleString('ru-RU');
-const fmtR=n=>fmt(n)+' ₽';
-const todayISO=()=>new Date().toISOString().slice(0,10);
-const monthPrefix=()=>{const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
-const parseD=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
-const fmtDate=s=>{if(!s)return'—';const d=typeof s==='string'?parseD(s):s;
-  return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});};
-
-function toast(m){const t=document.getElementById('toast');
-  t.textContent=m;t.classList.add('show');
-  clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2000);}
-function logAudit(a,d){DB.audit.unshift({id:uid(),action:a,details:d,role:ROLE,
-  date:new Date().toISOString()});if(DB.audit.length>500)DB.audit.length=500;saveDB();}
-
-document.querySelectorAll('#roleSwitch button').forEach(b=>{
-  b.onclick=()=>{document.querySelectorAll('#roleSwitch button')
-    .forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');SELECTED_ROLE=b.dataset.role;};
-});
-
-function tryLogin(){
-  const pin=document.getElementById('pinInput').value.trim();
-  if(pin===DB.pins[SELECTED_ROLE]){
-    ROLE=SELECTED_ROLE;
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('appScreen').style.display='block';
-    document.getElementById('whoAmI').textContent=
-      ROLE==='owner'?'Вы вошли как владелец':'Вы вошли как магазин';
-    refreshAll();
-  }else{toast('Неверный PIN');document.getElementById('pinInput').value='';}
-}
-function logout(){ROLE=null;
-  document.getElementById('loginScreen').style.display='flex';
-  document.getElementById('appScreen').style.display='none';}
-
-function nav(s){
-  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
-  const el=document.getElementById('screen-'+s);if(el)el.classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const nb=document.querySelector('.nav-btn[data-screen="'+s+'"]');
-  if(nb)nb.classList.add('active');
-  document.getElementById('topbar').style.display=s==='summary'?'none':'flex';
-  window.scrollTo(0,0);refreshAll();
-}
-
-function openModal(t,h){
-  document.getElementById('modalTitle').textContent=t;
-  document.getElementById('modalBody').innerHTML=h;
-  document.getElementById('modalBg').classList.add('active');}
-function closeModal(){document.getElementById('modalBg').classList.remove('active');}
-
-function refreshAll(){
-  renderSummary();renderClients();renderContracts();renderCalc();renderCalendar();
-}
-
-/* ============ СВОДКА ============ */
-function renderSummary(){
-  const act=DB.contracts.filter(c=>c.status==='active');
-  const turnover=act.reduce((s,c)=>s+(c.total||0),0);
-  const mp=monthPrefix();
-  const collected=DB.contracts.flatMap(c=>c.schedule||[])
-    .filter(p=>p.paid&&p.paidDate&&p.paidDate.startsWith(mp))
-    .reduce((s,p)=>s+(p.amount||0),0);
-  const expected=DB.contracts.flatMap(c=>c.schedule||[])
-    .filter(p=>!p.paid&&p.date&&p.date.startsWith(mp))
-    .reduce((s,p)=>s+(p.amount||0),0);
-  let overdue=0;const oc=new Set();
-  const now=new Date();
-  DB.contracts.forEach(c=>(c.schedule||[]).forEach(p=>{
-    if(!p.paid&&p.date&&parseD(p.date)<now){
-      overdue+=p.amount||0;oc.add(c.clientId||c.id);}
-  }));
-  document.getElementById('s-turnover').textContent=fmt(turnover);
-  document.getElementById('s-collected').textContent=fmt(collected);
-  document.getElementById('s-expected').textContent=fmtR(expected);
-  const card=document.getElementById('s-overdue-card');
-  if(overdue>0){card.style.display='block';
-    document.getElementById('s-overdue').textContent=fmt(overdue);
-    document.getElementById('s-overdue-hint').textContent=oc.size+' должников';
-  }else card.style.display='none';
-
-  const rl=document.getElementById('recentList');
-  const list=[...DB.contracts].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,5);
-  if(!list.length){rl.innerHTML='<div class="card"><div class="empty-title">'+
-    'Договоров пока нет</div><div class="empty-desc">Нажмите «Новый договор»,'+
-    ' чтобы создать первый.</div></div>';return;}
-  rl.innerHTML=list.map(c=>{
-    const cl=DB.clients.find(x=>x.id===c.clientId);
-    return '<div class="list-item" onclick="openContract(\''+c.id+'\')">'+
-      '<div class="main"><div class="title">'+(cl?cl.name:'—')+'</div>'+
-      '<div class="sub">'+(c.product||'—')+' · '+fmtR(c.total)+'</div></div>'+
-      '<div style="color:var(--muted)">›</div></div>';
-  }).join('');
-}
-
-/* ============ КЛИЕНТЫ ============ */
-function renderClients(){
-  const q=(document.getElementById('clientSearch').value||'').toLowerCase();
-  const list=DB.clients.filter(c=>!q||c.name.toLowerCase().includes(q)||
-    (c.phone||'').includes(q));
-  const el=document.getElementById('clientsList');
-  if(!list.length){el.innerHTML='<div class="card"><div class="empty-title">'+
-    'Клиентов пока нет</div><div class="empty-desc">С клиента начинается'+
-    ' договор. Добавьте первого.</div><button class="btn btn-dark" '+
-    'onclick="openClientForm()">Добавить первого</button></div>';return;}
-  el.innerHTML=list.map(c=>{
-    const ini=(c.name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-    return '<div class="list-item" onclick="openClientCard(\''+c.id+'\')">'+
-      '<div style="display:flex;align-items:center;gap:12px;flex:1">'+
-      '<div class="avatar">'+ini+'</div><div class="main">'+
-      '<div class="title">'+c.name+'</div>'+
-      '<div class="sub">'+(c.phone||'—')+'</div></div></div>'+
-      '<div style="color:var(--muted)">›</div></div>';
-  }).join('');
-}
-function openClientForm(){
-  openModal('Новый клиент',
-    '<div class="field"><label>ФИО</label><input id="cf-name"></div>'+
-    '<div class="field"><label>Телефон</label><input id="cf-phone" type="tel" placeholder="+7..."></div>'+
-    '<div class="field"><label>Адрес</label><input id="cf-address"></div>'+
-    '<div class="field"><label>Паспорт</label><input id="cf-passport" placeholder="серия/номер, кем/когда"></div>'+
-    '<button class="btn btn-dark btn-block" onclick="saveClient()">Сохранить</button>');
-}
-function saveClient(){
-  const name=document.getElementById('cf-name').value.trim();
-  if(!name){toast('Введите имя');return;}
-  DB.clients.push({id:uid(),name,
-    phone:document.getElementById('cf-phone').value.trim(),
-    address:document.getElementById('cf-address').value.trim(),
-    passport:document.getElementById('cf-passport').value.trim(),
-    createdAt:new Date().toISOString()});
-  saveDB();logAudit('client_add',name);closeModal();refreshAll();toast('Клиент добавлен');
-}
-function openClientCard(id){
-  const c=DB.clients.find(x=>x.id===id);if(!c)return;
-  const cts=DB.contracts.filter(x=>x.clientId===id);
-  openModal(c.name,
-    '<div style="color:var(--muted);margin-bottom:6px">'+(c.phone||'—')+'</div>'+
-    (c.address?'<div style="color:var(--muted);margin-bottom:6px">'+c.address+'</div>':'')+
-    (c.passport?'<div style="color:var(--muted);margin-bottom:14px">'+c.passport+'</div>':'')+
-    '<div style="margin-bottom:14px"><b>Договоров: '+cts.length+'</b></div>'+
-    '<button class="btn btn-outline btn-block" style="margin-bottom:10px" '+
-    'onclick="deleteClient(\''+id+'\')">Удалить клиента</button>');
-}
-function deleteClient(id){
-  if(!confirm('Удалить клиента?'))return;
-  DB.clients=DB.clients.filter(x=>x.id!==id);saveDB();closeModal();
-  refreshAll();toast('Удалён');
-}
-
-/* ============ ДОГОВОРЫ ============ */
-function switchTab(t){
-  CONTRACT_TAB=t;
-  document.querySelectorAll('#screen-contracts .tabs button')
-    .forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
-  renderContracts();
-}
-function renderContracts(){
-  const list=DB.contracts.filter(c=>
-    CONTRACT_TAB==='active'?c.status==='active':c.status==='closed');
-  const el=document.getElementById('contractsList');
-  if(!list.length){el.innerHTML='<div class="card"><div class="empty-title">'+
-    (CONTRACT_TAB==='active'?'Договоров пока нет':'Архив пуст')+
-    '</div><div class="empty-desc">'+(CONTRACT_TAB==='active'?
-    'Нажмите «Новый договор» выше.':'Здесь будут закрытые договоры.')+
-    '</div></div>';return;}
-  el.innerHTML=list.map(c=>{
-    const cl=DB.clients.find(x=>x.id===c.clientId);
-    const paid=(c.schedule||[]).filter(p=>p.paid).length;
-    const total=(c.schedule||[]).length;
-    const pct=total?Math.round(paid/total*100):0;
-    return '<div class="list-item" onclick="openContract(\''+c.id+'\')">'+
-      '<div class="main"><div class="title">'+(cl?cl.name:'—')+'</div>'+
-      '<div class="sub">'+(c.product||'—')+' · '+fmtR(c.total)+'</div>'+
-      '<div class="progress"><div style="width:'+pct+'%"></div></div>'+
-      '<div class="sub">'+paid+'/'+total+' мес · остаток '+
-      fmtR(Math.max(0,c.total-(c.schedule||[]).reduce((s,p)=>s+(p.paid?p.amount:0),0)))+
-      '</div></div><div style="color:var(--muted)">›</div></div>';
-  }).join('');
-}
-
-function openNewContract(){
-  const clientOpts=DB.clients.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
-  if(!DB.clients.length){toast('Сначала добавьте клиента');nav('clients');return;}
-  openModal('Новый договор',
-    '<div class="field"><label>Клиент</label>'+
-      '<select id="n-client">'+clientOpts+'</select></div>'+
-    '<div class="field"><label>Товар (наименование)</label>'+
-      '<input id="n-product" placeholder="Например: диван"></div>'+
-    '<div class="field"><label>Цена товара (₽)</label>'+
-      '<input id="n-price" type="number" value="50000" oninput="updateNewCalc()"></div>'+
-    '<div class="field"><label>Первый взнос (₽)</label>'+
-      '<input id="n-down" type="number" value="0" oninput="updateNewCalc()"></div>'+
-    '<label>Срок</label><div class="chips" id="n-months">'+
-      '<button class="chip" onclick="setNewMonths(this,3)">3</button>'+
-      '<button class="chip active" onclick="setNewMonths(this,6)">6</button>'+
-      '<button class="chip" onclick="setNewMonths(this,9)">9</button>'+
-      '<button class="chip" onclick="setNewMonths(this,12)">12</button></div>'+
-    '<div class="field"><label>Дата первого платежа</label>'+
-      '<input id="n-start" type="date" value="'+todayISO()+'"></div>'+
-    '<div class="calc-result" id="n-calc"></div>'+
-    '<button class="btn btn-dark btn-block" onclick="saveContract()">'+
-      'Создать договор</button>');
-  _months=6;updateNewCalc();
-}
-function setNewMonths(el,m){
-  document.querySelectorAll('#n-months .chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');_months=m;updateNewCalc();
-}
-function updateNewCalc(){
-  const price=+document.getElementById('n-price').value||0;
-  const down=+document.getElementById('n-down').value||0;
-  const fin=price-down;
-  const markup=fin*0.05*_months;
-  const total=price+markup;
-  const monthly=(fin+markup)/_months;
-  document.getElementById('n-calc').innerHTML=
-    '<div class="line" style="font-size:13px">Платёж в месяц</div>'+
-    '<div class="line big">'+fmtR(monthly)+'</div>'+
-    '<div class="line"><span>Наценка (5% × '+_months+' мес)</span>'+
-    '<span>'+fmtR(markup)+'</span></div>'+
-    '<div class="line"><span>Общая стоимость</span>'+
-    '<span>'+fmtR(total)+'</span></div>';
-}
-function saveContract(){
-  const clientId=document.getElementById('n-client').value;
-  const product=document.getElementById('n-product').value.trim();
-  const price=+document.getElementById('n-price').value||0;
-  const down=+document.getElementById('n-down').value||0;
-  const startStr=document.getElementById('n-start').value||todayISO();
-  if(!product){toast('Введите товар');return;}
-  if(price<=0){toast('Введите цену');return;}
-  const fin=price-down;
-  const markup=fin*0.05*_months;
-  const total=price+markup;
-  const monthly=Math.round((fin+markup)/_months);
-  const start=parseD(startStr);
-  const schedule=[];
-  for(let i=1;i<=_months;i++){
-    const d=new Date(start.getFullYear(),start.getMonth()+i,start.getDate());
-    schedule.push({n:i,date:d.toISOString().slice(0,10),
-      amount:monthly,paid:false,paidDate:null});
-  }
-  DB.contracts.push({
-    id:uid(),clientId,product,price,down,months:_months,
-    markup:Math.round(markup),total:Math.round(total),monthly,
-    startDate:startStr,schedule,status:'active',
-    createdBy:ROLE,createdAt:new Date().toISOString()
-  });
-  saveDB();logAudit('contract_add',product+' — '+fmtR(total));
-  closeModal();refreshAll();toast('Договор создан');
-}
-
-function openContract(id){
-  const c=DB.contracts.find(x=>x.id===id);if(!c)return;
-  const cl=DB.clients.find(x=>x.id===c.clientId);
-  const paidSum=(c.schedule||[]).reduce((s,p)=>s+(p.paid?p.amount:0),0);
-  const pct=c.total?Math.round(paidSum/c.total*100):0;
-  const rows=(c.schedule||[]).map((p,i)=>{
-    const isOverdue=!p.paid&&parseD(p.date)<new Date();
-    const cls=p.paid?'paid':isOverdue?'overdue':'';
-    const icon=p.paid?'✅':isOverdue?'⏰':'⏳';
-    const canEdit=ROLE==='owner';
-    return '<div class="schedule-row '+cls+'">'+
-      '<div class="info"><div class="date">'+fmtDate(p.date)+'</div>'+
-      '<div class="amt">'+fmtR(p.amount)+'</div></div>'+
-      (canEdit?'<div class="check" onclick="togglePaid(\''+c.id+'\','+i+')" '+
-        'style="cursor:pointer">'+icon+'</div>':'<div class="check">'+icon+'</div>')+
-      '</div>';
-  }).join('');
-
-  openModal('Договор', 
-    '<div style="margin-bottom:8px"><b>'+(cl?cl.name:'—')+'</b></div>'+
-    '<div style="color:var(--muted);margin-bottom:14px">'+c.product+'</div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-      '<span>Цена:</span><b>'+fmtR(c.price)+'</b></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-      '<span>Наценка:</span><b>'+fmtR(c.markup)+'</b></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-      '<span>Итог:</span><b>'+fmtR(c.total)+'</b></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:14px">'+
-      '<span>Платёж/мес:</span><b>'+fmtR(c.monthly)+'</b></div>'+
-    '<div class="progress"><div style="width:'+pct+'%"></div></div>'+
-    '<div style="text-align:center;font-size:13px;color:var(--muted);'+
-      'margin-bottom:18px">Выплачено '+pct+'% · остаток '+
-      fmtR(c.total-paidSum)+'</div>'+
-    '<div class="section-label" style="margin-top:0">График платежей</div>'+
-    '<div class="card" style="padding:8px 18px">'+rows+'</div>'+
-    '<div class="btn-row" style="margin-top:14px">'+
-      '<button class="btn btn-outline" style="flex:1" onclick="printContract(\''+c.id+'\')">📄 Печать</button>'+
-      '<button class="btn btn-outline" style="flex:1" onclick="whatsappSchedule(\''+c.id+'\')">📲 WhatsApp</button>'+
-    '</div>'+
-    (ROLE==='owner'&&c.status==='active'?
-      '<button class="btn btn-dark btn-block" style="margin-top:10px" '+
-      'onclick="closeContract(\''+c.id+'\')">Завершить и в архив</button>':'')
-  );
-}
-function togglePaid(cid,idx){
-  if(ROLE!=='owner'){toast('Только владелец может отметить оплату');return;}
-  const c=DB.contracts.find(x=>x.id===cid);
-  const p=c.schedule[idx];
-  p.paid=!p.paid;
-  p.paidDate=p.paid?todayISO():null;
-  saveDB();logAudit('payment',(p.paid?'Оплачен':'Отменён')+' мес. '+p.n);
-  closeModal();refreshAll();toast(p.paid?'Оплата зафиксирована':'Оплата снята');
-}
-function closeContract(cid){
-  const c=DB.contracts.find(x=>x.id===cid);
-  c.status='closed';saveDB();closeModal();refreshAll();toast('Договор в архив');
-}
-
-/* ============ КАЛЬКУЛЯТОР ============ */
-function renderCalc(){
-  const p=document.getElementById('c-price');if(!p)return;
-  const down=document.getElementById('c-down');
-  down.max=Math.round(+p.value/2);
-  updateCalc();
-}
-function setMonths(el,m){
-  document.querySelectorAll('#c-months .chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');_months=m;updateCalc();
-}
-function updateCalc(){
-  const price=+document.getElementById('c-price').value;
-  const down=Math.min(+document.getElementById('c-down').value,price/2);
-  const fin=price-down;
-  const markup=fin*0.05*_months;
-  const total=price+markup;
-  const monthly=(fin+markup)/_months;
-  document.getElementById('c-price-v').textContent=fmtR(price);
-  document.getElementById('c-down-v').textContent=fmtR(down);
-  document.getElementById('c-monthly').textContent=fmtR(monthly);
-  document.getElementById('c-markup').textContent=fmtR(markup);
-  document.getElementById('c-total').textContent=fmtR(total);
-}
-function createFromCalc(){
-  const price=+document.getElementById('c-price').value;
-  const down=+document.getElementById('c-down').value;
-  const clientOpts=DB.clients.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
-  if(!DB.clients.length){toast('Сначала добавьте клиента');nav('clients');return;}
-  openModal('Новый договор',
-    '<div class="field"><label>Клиент</label><select id="n-client">'+clientOpts+'</select></div>'+
-    '<div class="field"><label>Товар</label><input id="n-product"></div>'+
-    '<div class="field"><label>Цена товара</label><input id="n-price" type="number" value="'+price+'" oninput="updateNewCalc()"></div>'+
-    '<div class="field"><label>Первый взнос</label><input id="n-down" type="number" value="'+down+'" oninput="updateNewCalc()"></div>'+
-    '<label>Срок</label><div class="chips" id="n-months">'+
-      '<button class="chip '+(_months===3?'active':'')+'" onclick="setNewMonths(this,3)">3</button>'+
-      '<button class="chip '+(_months===6?'active':'')+'" onclick="setNewMonths(this,6)">6</button>'+
-      '<button class="chip '+(_months===9?'active':'')+'" onclick="setNewMonths(this,9)">9</button>'+
-      '<button class="chip '+(_months===12?'active':'')+'" onclick="setNewMonths(this,12)">12</button></div>'+
-    '<div class="field"><label>Дата первого платежа</label><input id="n-start" type="date" value="'+todayISO()+'"></div>'+
-    '<div class="calc-result" id="n-calc"></div>'+
-    '<button class="btn btn-dark btn-block" onclick="saveContract()">Создать договор</button>');
-  updateNewCalc();
-}
-
-/* ============ КАЛЕНДАРЬ ============ */
-function calShift(d){CAL_DATE.setMonth(CAL_DATE.getMonth()+d);renderCalendar();}
-function renderCalendar(){
-  const y=CAL_DATE.getFullYear(),m=CAL_DATE.getMonth();
-  const title=CAL_DATE.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
-  document.getElementById('calTitle').textContent=title;
-  const first=new Date(y,m,1);
-  let startDow=first.getDay();if(startDow===0)startDow=7;
-  startDow--;
-  const daysInMonth=new Date(y,m+1,0).getDate();
-  const paymentsByDay={};
-  let sum=0;
-  DB.contracts.forEach(c=>(c.schedule||[]).forEach(p=>{
-    if(p.date&&p.date.startsWith(y+'-'+String(m+1).padStart(2,'0'))){
-      if(!paymentsByDay[p.date])paymentsByDay[p.date]=[];
-      paymentsByDay[p.date].push({p,c});
-      if(!p.paid)sum+=p.amount;
-    }
-  }));
-  document.getElementById('calSum').textContent=fmtR(sum);
-  const heads=['пн','вт','ср','чт','пт','сб','вс']
-    .map(h=>'<div style="font-size:10px;text-align:center;color:var(--muted);'+
-      'font-weight:700;padding:6px 0">'+h+'</div>').join('');
-  let cells='';
-  for(let i=0;i<startDow;i++)cells+='<div></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const items=paymentsByDay[ds]||[];
-    const hasUnpaid=items.some(x=>!x.p.paid);
-    const isOverdue=hasUnpaid&&parseD(ds)<new Date();
-    const bg=isOverdue?'background:#f5d4cf;color:var(--danger);font-weight:700;':
-      hasUnpaid?'background:#e5f0d0;color:#5a7522;font-weight:700;':
-      'background:white;';
-    cells+='<div onclick="showDay(\''+ds+'\')" style="aspect-ratio:1;'+
-      'display:flex;align-items:center;justify-content:center;border-radius:10px;'+
-      'font-size:13px;cursor:pointer;'+bg+'">'+d+'</div>';
-  }
-  document.getElementById('calGrid').innerHTML=
-    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">'+
-    heads+cells+'</div>';
-  document.getElementById('calDetails').innerHTML='';
-}
-function showDay(ds){
-  const items=[];
-  DB.contracts.forEach(c=>(c.schedule||[]).forEach(p=>{
-    if(p.date===ds)items.push({p,c});
-  }));
-  if(!items.length){toast('Нет платежей');return;}
-  const html=items.map(x=>{
-    const cl=DB.clients.find(z=>z.id===x.c.clientId);
-    return '<div class="schedule-row '+(x.p.paid?'paid':'')+'">'+
-      '<div class="info"><div class="date">'+(cl?cl.name:'—')+'</div>'+
-      '<div class="amt">'+x.c.product+' · '+fmtR(x.p.amount)+'</div></div>'+
-      '<div class="check">'+(x.p.paid?'✅':'⏳')+'</div></div>';
-  }).join('');
-  document.getElementById('calDetails').innerHTML=
-    '<div class="section-label">'+fmtDate(ds)+'</div>'+
-    '<div class="card" style="padding:8px 18px">'+html+'</div>';
-}
-
-/* ============ ПРОСРОЧКИ ============ */
-function openOverdue(){
-  const now=new Date();
-  const buckets={'1-30':0,'31-60':0,'60+':0};
-  const list=[];
-  DB.contracts.forEach(c=>(c.schedule||[]).forEach(p=>{
-    if(!p.paid&&p.date&&parseD(p.date)<now){
-      const days=Math.floor((now-parseD(p.date))/86400000);
-      const b=days<=30?'1-30':days<=60?'31-60':'60+';
-      buckets[b]+=p.amount;
-      list.push({c,p,days});
-    }
-  }));
-  const rows=list.map(x=>{
-    const cl=DB.clients.find(z=>z.id===x.c.clientId);
-    return '<div class="schedule-row overdue">'+
-      '<div class="info"><div class="date">'+(cl?cl.name:'—')+' · '+x.days+' дн.</div>'+
-      '<div class="amt">'+x.c.product+' · '+fmtR(x.p.amount)+'</div></div></div>';
-  }).join('')||'<div class="empty-desc">Просрочек нет</div>';
-  openModal('Возраст просрочки',
-    '<div class="card"><div class="card-label">1-30 дней</div>'+
-      '<div class="big-number" style="color:var(--danger)">'+fmtR(buckets['1-30'])+'</div></div>'+
-    '<div class="card"><div class="card-label">31-60 дней</div>'+
-      '<div class="big-number" style="color:var(--danger)">'+fmtR(buckets['31-60'])+'</div></div>'+
-    '<div class="card"><div class="card-label">60+ дней</div>'+
-      '<div class="big-number" style="color:var(--danger)">'+fmtR(buckets['60+'])+'</div></div>'+
-    '<div class="section-label">Список</div>'+
-    '<div class="card" style="padding:8px 18px">'+rows+'</div>');
-}
-
-/* ============ ЖУРНАЛ ============ */
-function openAudit(){
-  const rows=DB.audit.slice(0,50).map(a=>
-    '<div style="padding:10px 0;border-bottom:1px solid var(--line);font-size:13px">'+
-    '<div style="font-weight:600">'+a.action+'</div>'+
-    '<div style="color:var(--muted)">'+(a.details||'')+' · '+
-    new Date(a.date).toLocaleString('ru-RU')+'</div></div>'
-  ).join('')||'<div class="empty-desc">Журнал пуст</div>';
-  openModal('Журнал действий','<div>'+rows+'</div>');
-}
-
-/* ============ ПЕЧАТЬ ДОГОВОРА ============ */
-function printContract(cid){
-  const c=DB.contracts.find(x=>x.id===cid);
-  const cl=DB.clients.find(x=>x.id===c.clientId)||{};
-  const rows=(c.schedule||[]).map(p=>
-    '<tr><td>'+fmtDate(p.date)+'</td><td style="text-align:right">'+
-    fmtR(p.amount)+'</td></tr>').join('');
-  const today=new Date().toLocaleDateString('ru-RU');
-  document.getElementById('printArea').innerHTML=
-    '<h1>Договор от '+today+' г.</h1>'+
-    '<h2>С именем Аллаха Милостивого и Милосердного.</h2>'+
-    '<ul>'+
-    '<li>Продавец отдаёт в рассрочку Покупателю <b>'+(cl.name||'—')+
-      '</b>'+(cl.passport?', паспорт '+cl.passport:'')+
-      ' товар <b>'+c.product+'</b> на сумму <b>'+fmt(c.total)+
-      ' ('+c.total+')</b> рублей на срок <b>'+c.months+' месяцев</b>.</li>'+
-    '<li>Сумма ежемесячного платежа в течение '+c.months+' месяцев составляет <b>'+
-      fmt(c.monthly)+'</b> рублей.</li>'+
-    '<li>Окончательный день оплаты <b>'+
-      fmtDate((c.schedule||[]).slice(-1)[0]?.date||'')+'</b>.</li>'+
-    '<li>В случае резкого удешевления рубля (девальвация) в период действия '+
-      'договора, будем рассматривать этот вопрос в Шариатском суде.</li>'+
-    '<li>Настоящий Договор вступает в силу с момента его подписания Сторонами.</li>'+
-    '<li>Покупателю строго запрещается использовать Товар для получения '+
-      'наличных денежных средств (обналичивания).</li>'+
-    '<li>Если Покупатель не имеет возможности осуществить платёж в срок, '+
-      'он обязуется не позднее 3 рабочих дней до наступления даты платежа '+
-      'уведомить об этом Продавца.</li>'+
-    '<li>Настоящий Договор заключён в соответствии с нормами Исламского права '+
-      '(Шариата), что делает его дозволенным (халяль).</li>'+
-    '<li>Как пришло в Хадисе: «У нечестного нет веры, у не исполняющего '+
-      'обещаний нет религии».</li>'+
-    '</ul>'+
-    '<h3 style="margin-top:20px">График платежей</h3>'+
-    '<table style="width:100%;border-collapse:collapse" border="1">'+
-    '<tr><th>Дата</th><th>Сумма</th></tr>'+rows+'</table>'+
-    '<div class="signatures" style="margin-top:30px">'+
-    '<div class="sign-row">'+
-    '<div class="sign-col"><div>Продавец</div>'+
-      '<div class="sign-line"></div><div class="sign-label">(подпись)</div></div>'+
-    '<div class="sign-col"><div>Покупатель</div>'+
-      '<div class="sign-line"></div><div class="sign-label">(подпись)</div></div>'+
-    '</div>'+
-    '<div class="sign-row">'+
-    '<div class="sign-col"><div>Свидетель</div>'+
-      '<div class="sign-line"></div><div class="sign-label">(подпись)</div></div>'+
-    '<div class="sign-col"></div>'+
-    '</div></div>';
-  window.print();
-}
-
-/* ============ WHATSAPP ============ */
-function whatsappSchedule(cid){
-  const c=DB.contracts.find(x=>x.id===cid);
-  const cl=DB.clients.find(x=>x.id===c.clientId)||{};
-  const phone=(cl.phone||'').replace(/\D/g,'');
-  const rows=(c.schedule||[]).map(p=>
-    '• '+fmtDate(p.date)+' — '+fmtR(p.amount)+(p.paid?' ✅':'')).join('\n');
-  const text='Ассаляму алейкум, '+(cl.name||'')+'!\n\n'+
-    'Ваш договор на «'+c.product+'»\n'+
-    'Сумма: '+fmtR(c.total)+'\n'+
-    'Платёж: '+fmtR(c.monthly)+' × '+c.months+' мес.\n\n'+
-    'График платежей:\n'+rows+'\n\n'+
-    'Баракаллаху фикум!';
-  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(text),'_blank');
-}
-
-/* ============ ЭКСПОРТ / ИМПОРТ ============ */
-function exportData(){
-  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='summa-'+todayISO()+'.json';
-  a.click();URL.revokeObjectURL(url);toast('Файл скачан');
-}
-function importData(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
-  inp.onchange=e=>{
-    const f=e.target.files[0];if(!f)return;
-    const r=new FileReader();
-    r.onload=ev=>{try{const imp=JSON.parse(ev.target.result);
-      if(imp.clients&&imp.contracts){
-        const ids=new Set(DB.clients.map(c=>c.id));
-        imp.clients.forEach(c=>{if(!ids.has(c.id))DB.clients.push(c);});
-        const cids=new Set(DB.contracts.map(c=>c.id));
-        imp.contracts.forEach(c=>{if(!cids.has(c.id))DB.contracts.push(c);});
-        saveDB();refreshAll();toast('Импорт выполнен');}
-      else toast('Неверный формат');
-    }catch(err){toast('Ошибка файла');}};
-    r.readAsText(f);
-  };inp.click();
-}
-
-/* ============ СТАРТ ============ */
-DB=loadDB();
-document.getElementById('pinInput').addEventListener('keypress',e=>{
-  if(e.key==='Enter')tryLogin();
-});
+/* === ЧАСТЬ 2 (ядро) — придёт следующим сообщением === */
+/* Пока файл не будет работать — ждите Часть 2 */
 </script>
 </body>
-</html>
+</html>  
