@@ -1,426 +1,457 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#f0f1ec">
-<title>СУММА — учёт рассрочки</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-:root{--bg:#f0f1ec;--card:#fff;--dark:#2d3a34;--lime:#c8dd5f;
---text:#1a1f1c;--muted:#7a8079;--line:#e5e6e0;--danger:#c94a3f;}
-html,body{background:var(--bg);color:var(--text);font-size:15px;
-font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
-line-height:1.45;-webkit-font-smoothing:antialiased;}
-body{padding-bottom:90px;}
-.app{max-width:480px;margin:0 auto;padding:0 16px;}
-.topbar{display:flex;align-items:center;justify-content:space-between;
-padding:14px 0 10px;position:sticky;top:0;background:var(--bg);z-index:20;
-border-bottom:1px solid var(--line);}
-.brand{display:flex;align-items:center;gap:10px;}
-.brand .sigma{width:38px;height:38px;border-radius:11px;background:var(--lime);
-color:var(--dark);display:flex;align-items:center;justify-content:center;
-font-size:20px;font-weight:700;}
-.brand .name{font-size:17px;font-weight:700;letter-spacing:-.2px;}
-.icon-btn{width:38px;height:38px;border-radius:50%;background:var(--card);
-border:1px solid var(--line);display:flex;align-items:center;
-justify-content:center;cursor:pointer;color:var(--text);font-size:16px;}
-.screen-title{font-size:30px;font-weight:800;letter-spacing:-.6px;
-line-height:1.15;margin:22px 0 8px;}
-.screen-sub{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:20px;}
-.card{background:var(--card);border-radius:24px;padding:20px;margin-bottom:14px;}
-.card-label{color:var(--muted);font-size:14px;margin-bottom:8px;}
-.big-number{font-size:36px;font-weight:800;letter-spacing:-1px;
-line-height:1.1;margin-bottom:6px;}
-.big-number .cur{font-size:24px;font-weight:600;color:var(--muted);}
-.card-hint{color:var(--muted);font-size:13px;line-height:1.5;}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
-padding:12px 20px;border-radius:14px;border:none;font-size:15px;
-font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .15s;}
-.btn:active{opacity:.75;}
-.btn-dark{background:var(--dark);color:#fff;}
-.btn-outline{background:transparent;color:var(--text);border:1px solid var(--line);}
-.btn-block{width:100%;}
-.btn-sm{padding:9px 14px;font-size:13px;border-radius:11px;}
-.btn-lg{padding:18px 24px;font-size:17px;border-radius:18px;}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
-.search{width:100%;padding:14px 18px;border-radius:14px;
-border:1px solid var(--line);background:var(--card);font-size:15px;
-font-family:inherit;color:var(--text);margin-bottom:16px;}
-.search:focus{outline:none;border-color:var(--dark);}
-input,select,textarea{width:100%;padding:14px 16px;border:1px solid var(--line);
-border-radius:14px;font-size:15px;font-family:inherit;background:var(--card);
-color:var(--text);margin-bottom:12px;}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--dark);}
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;
-font-weight:500;}
-.field{margin-bottom:14px;}
-.empty-title{font-size:16px;font-weight:700;margin-bottom:8px;}
-.empty-desc{color:var(--muted);font-size:14px;line-height:1.55;margin-bottom:16px;}
-.list-item{background:var(--card);border-radius:16px;padding:16px 18px;
-margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;
-gap:12px;cursor:pointer;}
-.list-item:active{background:#f7f8f2;}
-.list-item .main{flex:1;min-width:0;}
-.list-item .title{font-weight:600;margin-bottom:2px;}
-.list-item .sub{color:var(--muted);font-size:13px;}
-.avatar{width:42px;height:42px;border-radius:50%;background:var(--lime);
-color:var(--dark);display:flex;align-items:center;justify-content:center;
-font-weight:700;font-size:14px;flex-shrink:0;}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);
-padding:10px 16px calc(14px + env(safe-area-inset-bottom));
-display:flex;justify-content:center;z-index:50;}
-.bottom-nav-inner{display:flex;gap:4px;background:var(--card);padding:6px;
-border-radius:22px;box-shadow:0 2px 12px rgba(0,0,0,.06);width:100%;
-max-width:440px;}
-.nav-btn{flex:1;padding:10px 6px;border-radius:16px;background:none;border:none;
-cursor:pointer;display:flex;align-items:center;justify-content:center;
-color:var(--muted);font-family:inherit;position:relative;}
-.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;
-stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-.nav-btn.active{background:var(--dark);color:var(--lime);}
-.nav-btn.active::after{content:'';position:absolute;inset:0;border-radius:16px;
-border:2px solid var(--lime);pointer-events:none;}
-.screen{display:none;}
-.screen.active{display:block;}
-.modal-bg{position:fixed;inset:0;background:rgba(26,31,28,.5);z-index:100;
-display:none;align-items:flex-end;justify-content:center;}
-.modal-bg.active{display:flex;}
-.modal{background:var(--bg);width:100%;max-width:480px;
-border-radius:24px 24px 0 0;padding:20px;max-height:92vh;overflow-y:auto;}
-.modal-head{display:flex;align-items:center;justify-content:space-between;
-margin-bottom:18px;}
-.modal-head h3{font-size:20px;font-weight:700;}
-.modal-close{background:none;border:none;font-size:26px;color:var(--muted);
-cursor:pointer;line-height:1;padding:0 6px;}
-.login-wrap{min-height:100vh;display:flex;align-items:center;
-justify-content:center;padding:24px;}
-.login-box{background:var(--card);border-radius:24px;padding:32px 26px;
-width:100%;max-width:360px;text-align:center;}
-.login-box .brand-mark{width:64px;height:64px;border-radius:18px;
-background:var(--lime);color:var(--dark);display:flex;align-items:center;
-justify-content:center;font-size:32px;font-weight:800;margin:0 auto 16px;}
-.login-box h1{font-size:26px;font-weight:800;margin-bottom:6px;}
-.login-box p{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:24px;}
-.pin-input{text-align:center;font-size:22px;letter-spacing:10px;
-font-weight:700;padding:14px;}
-.login-hint{color:var(--muted);font-size:12px;line-height:1.7;margin-top:14px;}
-.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
-background:var(--dark);color:#fff;padding:12px 20px;border-radius:14px;
-font-size:14px;z-index:999;opacity:0;transition:opacity .25s;
-pointer-events:none;max-width:88%;text-align:center;}
-.toast.show{opacity:1;}
-.divider{height:1px;background:var(--line);margin:24px 0;border:none;}
-.section-label{font-size:15px;font-weight:700;margin:24px 0 12px;}
-.calc-box{background:linear-gradient(135deg,#2d3a34 0%,#1a241f 100%);
-color:#fff;border-radius:24px;padding:22px 20px;margin-bottom:14px;}
-.calc-box .calc-title{font-size:22px;font-weight:800;margin-bottom:18px;}
-.calc-box .lbl{font-size:14px;font-weight:600;margin-bottom:8px;opacity:.9;}
-.calc-box .num-field{background:#fff;color:var(--dark);border-radius:12px;
-padding:14px 16px;font-size:20px;font-weight:700;text-align:right;
-border:none;width:100%;margin-bottom:6px;}
-.calc-box input[type=range]{-webkit-appearance:none;width:100%;height:6px;
-background:rgba(255,255,255,.25);border-radius:3px;padding:0;
-margin:0 0 18px;display:block;}
-.calc-box input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
-width:26px;height:26px;background:#fff;border-radius:50%;cursor:pointer;
-border:3px solid var(--lime);>
-box-shadow:0 1px 4px rgba(0,0,0,.3);}
-.calc-result   -row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
-margin-bottom:16px;}
-.calc-result-row .cell{background:rgba(255,255,255,.1);border-radius:14px;
-padding:12px 8px;text-align:center;}
-.calc-result-row .cell .k{font-size:10px;opacity:.75;margin-bottom:6px;
-line-height:1.2;font-weight:600;}
-.calc-result-row .cell .v{font-size:16px;font-weight:800;color:var(--lime);}
-.calc-box .btn-white{background:#fff;color:var(--dark);border-radius:14px;
-padding:16px;font-weight:700;font-size:15px;border:none;width:100%;
-cursor:pointer;font-family:inherit;}
-.calc-hero{background:linear-gradient(135deg,var(--dark) 0%,#1a241f 100%);
-color:#fff;border-radius:22px;padding:22px;margin-bottom:14px;
-display:flex;align-items:center;gap:16px;cursor:pointer;}
-.calc-hero .ico{width:56px;height:56px;border-radius:16px;background:var(--lime);
-color:var(--dark);display:flex;align-items:center;justify-content:center;
-font-size:28px;font-weight:800;flex-shrink:0;}
-.calc-hero .txt{flex:1;}
-.calc-hero .txt .t{font-size:17px;font-weight:800;margin-bottom:2px;}
-.calc-hero .txt .s{font-size:13px;opacity:.7;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;}
-.cal-head{font-size:10px;text-align:center;color:var(--muted);font-weight:700;
-padding:6px 0;}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
-font-size:13px;border-radius:10px;background:var(--card);font-weight:500;
-cursor:pointer;position:relative;}
-.cal-day.empty{visibility:hidden;}
-.cal-day.has-unpaid{background:#e5f0d0;color:#5a7522;font-weight:700;}
-.cal-day.overdue{background:#f5d4cf;color:#8a2f22;font-weight:700;}
-.cal-day.paid{background:#eef0ea;color:var(--muted);}
-.cal-day.today{border:2px solid var(--dark);}
-.progress{height:8px;background:var(--line);border-radius:4px;overflow:hidden;
-margin:8px 0;}
-.progress > div{height:100%;background:var(--dark);border-radius:4px;}
-.schedule-row{display:flex;justify-content:space-between;align-items:center;
-padding:12px 0;border-bottom:1px solid var(--line);}
-.schedule-row:last-child{border-bottom:none;}
-.schedule-row .info{flex:1;}
-.schedule-row .date{font-weight:600;font-size:14px;}
-.schedule-row .amt{color:var(--muted);font-size:13px;margin-top:2px;}
-.schedule-row.paid .date{color:#5a7522;}
-.schedule-row.paid .amt{text-decoration:line-through;opacity:.6;}
-.schedule-row.overdue .date{color:var(--danger);}
-.schedule-row.overdue .amt{color:var(--danger);}
-.check{font-size:20px;flex-shrink:0;cursor:pointer;}
-.tabs{display:flex;gap:6px;background:var(--card);padding:4px;
-border-radius:14px;margin-bottom:14px;}
-.tabs button{flex:1;padding:9px;border:none;background:none;border-radius:10px;
-font-weight:600;font-size:13px;color:var(--muted);cursor:pointer;
-font-family:inherit;}
-.tabs button.active{background:var(--dark);color:var(--lime);}
-@media print{
-body *{visibility:hidden;}
-#printArea,#printArea *{visibility:visible;}
-#printArea{position:absolute;left:0;top:0;width:100%;padding:20mm;
-font-family:'Times New Roman',serif;font-size:12pt;color:black;
-line-height:1.5;display:block!important;}
-#printArea h1{text-align:center;font-size:16pt;margin-bottom:8px;}
-#printArea h2{text-align:center;font-size:12pt;font-style:italic;
-margin-bottom:16px;font-weight:normal;}
-#printArea ul{padding-left:20px;}
-#printArea li{margin-bottom:8px;}
-#printArea .signatures{margin-top:40px;}
-#printArea .sign-row{display:flex;justify-content:space-between;margin-bottom:30px;}
-#printArea .sign-col{width:45%;}
-#printArea .sign-line{border-bottom:1px solid black;height:30px;margin-bottom:4px;}
-#printArea .sign-label{font-size:9pt;color:#555;text-align:center;}
-#printArea table{width:100%;border-collapse:collapse;margin-top:10px;}
-#printArea th,#printArea td{border:1px solid black;padding:6px;
-text-align:left;font-size:10pt;}
+/* ============================================================
+   СУММА — investors.js  (v2)
+   Инвесторы: автовложение, ежемесячные начисления, проверка
+   Подключать ПОСЛЕ app.js. app.js менять не нужно.
+   ============================================================ */
+
+/* ---------- базовые расчёты ---------- */
+const finOf=c=>Math.max(0,(c.price||0)-(c.down||0));
+const fundOf=(c,pid)=>{const f=(c.funding||[]).find(x=>x.partnerId===pid);return f?f.amount:0;};
+const cName=c=>(DB.clients.find(z=>z.id===c.clientId)||{}).name;
+const shortName=n=>{const w=(n||'—').split(' ');return w[0]+(w[1]?' '+w[1][0]+'.':'');};
+const mLabel=m=>m.slice(5)+'.'+m.slice(0,4);
+const pctOf=p=>(p.pct==null?50:p.pct)/100;
+const lastDateOf=c=>((c.schedule||[]).slice(-1)[0]||{}).date||'';
+
+/* Разбивка одного платежа клиента: основной долг и наценка */
+function split(c,p){
+  const fin=finOf(c),tot=fin+(c.markup||0);
+  const prin=tot?p.amount*fin/tot:0;
+  return{prin,prof:p.amount-prin};
 }
-#printArea{display:none;}
-</style>
-</head>
-<body>
 
-<div id="loginScreen" class="login-wrap">
-  <div class="login-box">
-    <div class="brand-mark">Σ</div>
-    <h1>СУММА</h1>
-    <p>Учёт товарной рассрочки:<br>клиенты, договоры и платежи по месяцам.</p>
-    <input type="password" id="pinInput" class="pin-input" maxlength="4"
-      inputmode="numeric" placeholder="••••">
-    <button class="btn btn-dark btn-block" onclick="tryLogin()">Войти</button>
-    <div class="login-hint">PIN-код: <b>0537</b></div>
-  </div>
-</div>
+function contractState(c){
+  if(c.status==='closed')return{lvl:'closed',days:0,icon:'📁',txt:'закрыт'};
+  const now=new Date();let days=0;
+  (c.schedule||[]).forEach(p=>{
+    if(!p.paid&&p.date&&parseD(p.date)<now)
+      days=Math.max(days,Math.floor((now-parseD(p.date))/86400000));
+  });
+  if(days>30)return{lvl:'bad',days,icon:'🔴',txt:'ПРОБЛЕМНЫЙ, просрочка '+days+' дн.'};
+  if(days>0)return{lvl:'late',days,icon:'🟡',txt:'просрочка '+days+' дн.'};
+  return{lvl:'ok',days:0,icon:'🟢',txt:'идёт по графику'};
+}
 
-<div id="appScreen" style="display:none">
-<div class="app">
-  <div class="topbar" id="topbar" style="display:none">
-    <div class="brand"><div class="sigma">Σ</div>
-      <div class="name">СУММА</div></div>
-    <div class="icon-btn" onclick="toast('Скоро')">🔍</div>
-  </div>
+/* Договор закрыт, когда оплачены ВСЕ платежи графика */
+const contractDone=c=>{const s=c.schedule||[];return s.length>0&&s.every(x=>x.paid);};
+const doneDateOf=c=>(c.schedule||[]).reduce((m,x)=>{const d=x.paidDate||x.date||'';return d>m?d:m;},'');
 
-  <div id="screen-summary" class="screen active">
-    <h1 class="screen-title">Сводка</h1>
-    <p class="screen-sub">Оборот, ожидания и долги по всем договорам.</p>
-    <div class="calc-hero" onclick="nav('calc')">
-      <div class="ico">Σ</div>
-      <div class="txt">
-        <div class="t">Калькулятор рассрочки</div>
-        <div class="s">Рассчитать и оформить договор</div>
-      </div>
-      <div style="opacity:.6;font-size:20px">›</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Капитал в обороте</div>
-      <div class="big-number"><span id="s-turnover">0</span>
-        <span class="cur">₽</span></div>
-      <div class="card-hint">Сумма всех активных договоров</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Собрано в этом месяце</div>
-      <div class="big-number" style="color:#5a7522">
-        <span id="s-collected">0</span> <span class="cur">₽</span></div>
-      <div class="card-hint">Ожидается: <b id="s-expected">0 ₽</b></div>
-    </div>
-    <div class="card" id="s-overdue-card" style="display:none">
-      <div class="card-label">Просрочено</div>
-      <div class="big-number" style="color:var(--danger)">
-        <span id="s-overdue">0</span> <span class="cur">₽</span></div>
-      <div class="card-hint" id="s-overdue-hint">—</div>
-    </div>
-    <button class="btn btn-dark btn-block btn-lg" style="margin-top:14px"
-      onclick="openNewContract()">+ Новый договор</button>
-    <div class="section-label">Последние договоры</div>
-    <div id="recentList"></div>
-  </div>
+/* Журнал начислений инвестора: одна строка = один оплаченный платёж.
+   Основное возвращается сразу. Прибыль «в резерве», пока договор не закрыт. */
+function ledger(pid){
+  const pt=DB.partners.find(x=>x.id===pid),pc=pctOf(pt),out=[];
+  DB.contracts.forEach(c=>{
+    const a=fundOf(c,pid);if(!a)return;
+    const fin=finOf(c),sh=fin?a/fin:0,done=contractDone(c),dd=doneDateOf(c);
+    (c.schedule||[]).forEach(p=>{
+      if(!p.paid)return;
+      const s=split(c,p),prin=s.prin*sh,prof=s.prof*sh;
+      out.push({c,p,date:p.paidDate||p.date,a,sh,prin,
+        profInv:prof*pc,profOwner:prof*(1-pc),done,doneDate:dd});
+    });
+  });
+  return out.sort((x,y)=>x.date.localeCompare(y.date));
+}
 
-  <div id="screen-clients" class="screen">
-    <h1 class="screen-title">Клиенты</h1>
-    <p class="screen-sub">С клиента начинается договор.</p>
-    <button class="btn btn-dark" style="margin-bottom:16px"
-      onclick="openClientForm()">Добавить</button>
-    <input type="search" class="search" id="clientSearch"
-      placeholder="Поиск по имени или телефону" oninput="renderClients()">
-    <div id="clientsList"></div>
-  </div>
+function partnerStats(p,month){
+  const s={invested:0,returned:0,profit:0,held:0,mRet:0,mProfit:0,mReleased:0,mExp:0,
+    rows:[],led:ledger(p.id),mLed:[]};
+  s.led.forEach(e=>{
+    s.returned+=e.prin;
+    if(e.done){
+      s.profit+=e.profInv;
+      if(e.doneDate.startsWith(month))s.mReleased+=e.profInv;
+    }else s.held+=e.profInv;
+    if(e.date.startsWith(month)){s.mRet+=e.prin;s.mProfit+=e.profInv;s.mLed.push(e);}
+  });
+  DB.contracts.forEach(c=>{
+    const a=fundOf(c,p.id);if(!a)return;
+    const fin=finOf(c),sh=fin?a/fin:0;
+    let paid=0,next=null,left=0;
+    (c.schedule||[]).forEach(x=>{
+      if(x.paid)paid++;
+      else{
+        if(!next)next=x.date;
+        const pr=split(c,x).prof*sh*pctOf(p);left+=pr;
+        if(x.date&&x.date.startsWith(month))s.mExp+=pr;
+      }
+    });
+    const mine=s.led.filter(e=>e.c===c);
+    s.invested+=a;
+    s.rows.push({c,a,sh,paid,total:(c.schedule||[]).length,next,st:contractState(c),
+      done:contractDone(c),held:mine.reduce((t,e)=>t+(e.done?0:e.profInv),0),
+      earned:mine.reduce((t,e)=>t+(e.done?e.profInv:0),0),left});
+  });
+  s.inWork=s.invested-s.returned;
+  s.free=(p.deposit||0)-s.inWork;
+  s.paidOut=(p.payouts||[]).reduce((t,x)=>t+x.amount,0);
+  s.toPay=s.profit-s.paidOut;
+  s.problem=s.rows.filter(r=>r.st.lvl==='bad').reduce((t,r)=>t+r.a-0,0);
+  return s;
+}
 
-  <div id="screen-contracts" class="screen">
-    <h1 class="screen-title">Договоры</h1>
-    <div class="tabs">
-      <button class="active" data-tab="active"
-        onclick="switchTab('active')">Активные</button>
-      <button data-tab="closed" onclick="switchTab('closed')">Архив</button>
-    </div>
-    <button class="btn btn-dark" style="margin-bottom:14px"
-      onclick="openNewContract()">+ Новый договор</button>
-    <div id="contractsList"></div>
-  </div>
+/* Прибыль менеджера: его часть появляется только после полного закрытия договора */
+function managerStats(){
+  const s={earned:0,held:0,rows:[]};
+  DB.contracts.forEach(c=>{
+    const fin=finOf(c);if(!fin||!(c.funding||[]).length)return;
+    const done=contractDone(c);let v=0;
+    (c.schedule||[]).forEach(p=>{
+      if(!p.paid)return;const sp=split(c,p);
+      (c.funding||[]).forEach(x=>{
+        const pt=DB.partners.find(z=>z.id===x.partnerId);if(!pt)return;
+        v+=sp.prof*(x.amount/fin)*(1-pctOf(pt));
+      });
+    });
+    if(done)s.earned+=v;else s.held+=v;
+    s.rows.push({c,v,done});
+  });
+  s.paidOut=(DB.mgrPayouts||[]).reduce((t,x)=>t+x.amount,0);
+  s.toPay=s.earned-s.paidOut;
+  return s;
+}
 
-  <div id="screen-calc" class="screen">
-    <div class="calc-box">
-      <div class="calc-title">Рассчитайте рассрочку</div>
-      <div class="lbl">Стоимость товара или услуги:</div>
-      <input type="text" class="num-field" id="c-price-v" value="50 000 ₽"
-        onfocus="editNum('price')" onblur="applyNum('price')">
-      <input type="range" id="c-price" min="1000" max="1000000" step="1000"
-        value="50000" oninput="syncFromRange('price')">
-      <div class="lbl">Первоначальный взнос (мин. 20%):</div>
-      <input type="text" class="num-field" id="c-down-v" value="10 000 ₽"
-        onfocus="editNum('down')" onblur="applyNum('down')">
-      <input type="range" id="c-down" min="0" max="1000000" step="1000"
-        value="10000" oninput="syncFromRange('down')">
-      <div class="lbl">Срок рассрочки (мес.):</div>
-      <input type="text" class="num-field" id="c-months-v" value="6"
-        onfocus="editNum('months')" onblur="applyNum('months')">
-      <input type="range" id="c-months" min="1" max="24" step="1"
-        value="6" oninput="syncFromRange('months')">
-      <div class="calc-result-row">
-        < </div class="cell"><div class="k">Ежемес.<br>платdivёж</div>
-          <div class="v" id="c-monthly">>
-0 ₽</div></div>
-        <div class="cell"><div class="k">Торговая<br>наценка   </div>
-          <div class="v" id="c-markup">0 ₽</div></div>
-        <div class="cell"><div class="k">Общая<br>стоимость</div>
-          <div class="v" id="c-total">0 ₽</div></div>
-      </div>
-      <button class="btn-white" onclick="openClientFormFromCalc()">
-        Заполнить анкету</button>
-    </div>
-  </div>
+/* ---------- АВТОВЛОЖЕНИЕ ---------- */
+/* Берёт свободные деньги всех подходящих инвесторов и вкладывает
+   пропорционально их свободному остатку, но не больше суммы договора. */
+function termOn(){return DB.ignoreTerm!==true;}
+function toggleTerm(){
+  DB.ignoreTerm=termOn();saveDB();
+  toast(termOn()?'Срок вклада учитывается':'Срок вклада не учитывается');
+  openPartners();
+}
+/* Каждый договор делится между инвесторами пропорционально их ВКЛАДУ.
+   Если у кого-то не хватает свободных денег — остаток распределяется
+   между остальными так же по долям вклада. */
+function autoFund(cid){
+  const c=DB.contracts.find(x=>x.id===cid);if(!c)return null;
+  const need=finOf(c),m=monthPrefix(),last=lastDateOf(c);
+  const pool=[],skipped=[];
+  DB.partners.forEach(p=>{
+    const free=Math.floor(partnerStats(p,m).free+fundOf(c,p.id));
+    if(free<=0||!(p.deposit>0))return;
+    if(termOn()&&p.start&&p.term&&last){
+      const sd=parseD(p.start),end=new Date(sd.getFullYear(),sd.getMonth()+p.term,sd.getDate());
+      if(end<parseD(last)){skipped.push(p.name);return;}
+    }
+    pool.push({pid:p.id,w:p.deposit,cap:free,a:0,done:false});
+  });
+  let rest=need;
+  for(let guard=0;guard<20&&rest>0;guard++){
+    const open=pool.filter(x=>!x.done);
+    const W=open.reduce((t,x)=>t+x.w,0);
+    if(!open.length||W<=0)break;
+    let capped=false;
+    open.forEach(x=>{
+      if(rest*x.w/W>=x.cap-x.a){x.a=x.cap;x.done=true;capped=true;}
+    });
+    if(capped){rest=need-pool.reduce((t,x)=>t+x.a,0);continue;}
+    open.forEach(x=>{x.a=Math.floor(need*x.w/W);});
+    rest=need-pool.reduce((t,x)=>t+(x.done?x.a:0),0)-open.reduce((t,x)=>t+x.a,0);
+    open.slice().sort((p,q)=>q.w-p.w).forEach(x=>{
+      const add=Math.min(x.cap-x.a,rest);if(add>0){x.a+=add;rest-=add;}
+    });
+    break;
+  }
+  const list=pool.filter(x=>x.a>0).map(x=>({partnerId:x.pid,amount:x.a}));
+  c.funding=list;saveDB();
+  const sum=list.reduce((t,x)=>t+x.amount,0);
+  logAudit('Автовложение',c.product+' — '+fmtR(sum)+' из '+fmtR(need));
+  return{sum,need,count:list.length,skipped};
+}
+function hasPaid(c){return (c.schedule||[]).some(x=>x.paid);}
+function autoFundBtn(cid){
+  const c0=DB.contracts.find(x=>x.id===cid);
+  if(c0&&hasPaid(c0)){toast('Есть оплаченные платежи — состав инвесторов менять нельзя');return;}
+  const r=autoFund(cid);
+  toast(r.sum?'Вложено '+fmtR(r.sum)+' из '+fmtR(r.need):'Нет свободных денег инвесторов');
+  openContract(cid);
+}
+function afterNewContract(n0){
+  if(DB.contracts.length<=n0)return;
+  const c=DB.contracts[DB.contracts.length-1],r=autoFund(c.id);
+  setTimeout(()=>toast(r.sum
+    ?'Из денег инвесторов вложено '+fmtR(r.sum)+' из '+fmtR(r.need)+(r.sum<r.need?' (остальное — ваши)':'')
+    :'Свободных денег инвесторов нет'),400);
+}
+const _saveContract=saveContract;
+saveContract=function(){const n=DB.contracts.length;_saveContract();afterNewContract(n);};
+const _saveContractFromForm=saveContractFromForm;
+saveContractFromForm=function(){const n=DB.contracts.length;_saveContractFromForm();afterNewContract(n);};
 
-  <div id="screen-calendar" class="screen">
-    <h1 class="screen-title">Календарь платежей</h1>
-    <p class="screen-sub">Какого числа сколько придёт и от кого.</p>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <button class="btn btn-outline btn-sm" onclick="calShift(-1)">‹</button>
-        <div style="font-weight:700" id="calTitle">—</div>
-        <button class="btn btn-outline btn-sm" onclick="calShift(1)">›</button>
-      </div>
-      <div style="text-align:center;margin-top:14px">
-        <div style="font-size:24px;font-weight:800;color:var(--dark)"
-          id="calSum">0 ₽</div>
-        <div style="color:var(--muted);font-size:12px;margin-top:4px">за месяц</div>
-      </div>
-    </div>
-    <div class="card" id="calGrid"></div>
-    <div id="calDetails"></div>
-  </div>
+/* ---------- ручное распределение ---------- */
+function openFunding(cid){
+  const c=DB.contracts.find(x=>x.id===cid),fin=finOf(c),m=monthPrefix();
+  const rows=DB.partners.map(p=>{
+    const s=partnerStats(p,m),cur=fundOf(c,p.id);
+    return '<div class="field"><label>'+p.name+' · свободно '+fmtR(s.free+cur)+'</label>'+
+      '<input class="fd-in" data-pid="'+p.id+'" data-max="'+(s.free+cur)+
+      '" type="number" min="0" value="'+(cur||'')+'" placeholder="0"></div>';
+  }).join('')||'<div class="empty-desc">Сначала добавьте инвесторов</div>';
+  openModal('Чьи деньги в договоре',
+    '<div class="card-hint" style="margin-bottom:12px">Нужно вложить: <b>'+fmtR(fin)+'</b></div>'+rows+
+    '<button class="btn btn-dark btn-block" onclick="saveFunding(\''+cid+'\')">Сохранить</button>');
+}
+function saveFunding(cid){
+  const c=DB.contracts.find(x=>x.id===cid),fin=finOf(c);
+  if(hasPaid(c)){toast('Есть оплаченные платежи — состав инвесторов менять нельзя');return;}
+  const list=[];let sum=0,err='';
+  document.querySelectorAll('.fd-in').forEach(i=>{
+    const a=+i.value||0;if(a<=0)return;
+    if(a>+i.dataset.max+0.5)err='У инвестора не хватает свободных денег';
+    list.push({partnerId:i.dataset.pid,amount:a});sum+=a;
+  });
+  if(err){toast(err);return;}
+  if(sum>fin+0.5){toast('Больше, чем нужно: '+fmtR(sum)+' из '+fmtR(fin));return;}
+  c.funding=list;saveDB();logAudit('Доли инвесторов',c.product+' — '+fmtR(sum));
+  toast('Сохранено');openContract(cid);
+}
 
-  <div id="screen-more" class="screen">
-    <h1 class="screen-title">Ещё</h1>
-    <div class="list-item" onclick="openOverdue()">
-      <div class="main"><div class="title">Возраст просрочки</div>
-        <div class="sub">Долги по срокам</div></div>
-      <div style="color:var(--muted)">›</div>
-    </div>
-    <div class="list-item" onclick="nav('contracts')">
-      <div class="main"><div class="title">Архив договоров</div></div>
-      <div style="color:var(--muted)">›</div <div class="list-item" onclick="openAudit()">
-      <div class="main"><div class="title">Журнал действий</div></div>
-      <div style="color:var(--muted)">›</div>
-    </div>
-    <div class="list-item" onclick="openGoods()">
-      <div class="main"><div class="title">Товары и маржа</div></div>
-      <div style="color:var(--muted)">›</div>
-    </div>
-    <div class="list-item" onclick="openPartners()">
-      <div class="main"><div class="title">Займодатели</div></div>
-      <div style="color:var(--muted)">›</div>
-    </div>
-    <hr class="divider">
-    <div class="list-item" onclick="sendClientLink()">
-      <div class="main"><div class="title">📲 Ссылка клиенту</div>
-        <div class="sub">Калькулятор + анкета</div></div>
-      <div style="color:var(--muted)">›</div>
-    </div>
-    <div class="list-item" onclick="exportData()">
-      <div class="main"><div class="title">📤 Экспорт JSON</div></div>
-      <div style="color:var(--muted)">›</div>
-    </div>
-    <div class="list-item" onclick="importData()">
-      <div class="main"><div class="title">📥 Импорт JSON</div></div>
-      <div style="color:var(--muted)">›</div>
-    </div>
-    <hr class="divider">
-    <div style="display:flex;align-items:center;justify-content:space-between;
-      padding:8px 0">
-      <div style="color:var(--muted);font-size:14px" id="whoAmI">—</div>
-      <button class="btn btn-outline btn-sm" onclick="logout()">Выйти</button>
-    </div>
-  </div>
-</div>
+/* ---------- карточка договора: блок инвесторов ---------- */
+const _openContract=openContract;
+openContract=function(id){
+  _openContract(id);
+  const c=DB.contracts.find(x=>x.id===id);if(!c)return;
+  const st=contractState(c),fin=finOf(c),mp=(c.schedule||[])[0];
+  const sp=mp?split(c,mp):{prin:0,prof:0};
+  const f=(c.funding||[]).map(x=>{
+    const p=DB.partners.find(z=>z.id===x.partnerId);if(!p)return'';
+    const sh=fin?x.amount/fin:0;
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--line)">'+
+      '<div style="font-weight:600">'+p.name+' — '+fmtR(x.amount)+' ('+Math.round(sh*100)+'%)</div>'+
+      '<div class="sub">Каждый месяц: основное '+fmtR(sp.prin*sh)+' на счёт + прибыль '+fmtR(sp.prof*sh*pctOf(p))+' в резерв</div></div>';
+  }).join('');
+  const sum=(c.funding||[]).reduce((t,x)=>t+x.amount,0);
+  document.getElementById('modalBody').insertAdjacentHTML('beforeend',
+    '<div class="section-label">Инвесторы · '+st.icon+' '+st.txt+'</div>'+
+    '<div class="card">'+(f||'<div class="empty-desc">Деньги инвесторов не вложены</div>')+
+    '<div class="card-hint" style="margin:10px 0">Вложено инвесторами: '+fmtR(sum)+' из '+fmtR(fin)+'</div>'+
+    '<div class="btn-row"><button class="btn btn-dark" style="flex:1" onclick="autoFundBtn(\''+id+'\')">⚡ Авто</button>'+
+    '<button class="btn btn-outline" style="flex:1" onclick="openFunding(\''+id+'\')">✏️ Вручную</button></div></div>');
+};
 
-<div class="bottom-nav">
-  <div class="bottom-nav-inner">
-    <button class="nav-btn active" data-screen="summary" onclick="nav('summary')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/>
-      <rect x="14" y="3" width="7" height="7"/>
-      <rect x="3" y="14" width="7" height="7"/>
-      <rect x="14" y="14" width="7" height="7"/></svg>
-    </button>
-    <button class="nav-btn" data-screen="clients" onclick="nav('clients')">
-      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    </button>
-    <button class="nav-btn" data-screen="contracts" onclick="nav('contracts')">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/></svg>
-    </button>
-    <button class="nav-btn" data-screen="calendar" onclick="nav('calendar')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/></svg>
-    </button>
-    <button class="nav-btn" data-screen="more" onclick="nav('more')">
-      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/>
-      <line x1="3" y1="12" x2="21" y2="12"/>
-      <line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-  </div>
-</div>
-</div>
+/* ---------- список инвесторов ---------- */
+function openPartners(){
+  const m=monthPrefix();
+  const rows=DB.partners.map(p=>{
+    const s=partnerStats(p,m);
+    return '<div class="list-item" onclick="openPartner(\''+p.id+'\')">'+
+      '<div class="main"><div class="title">'+p.name+'</div>'+
+      '<div class="sub">Вклад '+fmtR(p.deposit||0)+' · в работе '+fmtR(s.inWork)+' · свободно '+fmtR(s.free)+'</div>'+
+      (s.problem?'<div class="sub" style="color:var(--danger)">🔴 в проблемных: '+fmtR(s.problem)+'</div>':'')+
+      '</div><div style="color:var(--muted)">›</div></div>';
+  }).join('')||'<div class="empty-desc">Инвесторов пока нет</div>';
+  openModal('Инвесторы',rows+
+    '<div class="card-hint" style="margin-bottom:10px">Каждый договор делится между инвесторами по доле их вклада.</div>'+
+    '<button class="btn btn-outline btn-block" style="margin-bottom:10px" onclick="toggleTerm()">Срок вклада: '+
+    (termOn()?'учитывать':'не учитывать')+' (нажмите, чтобы сменить)</button>'+
+    '<button class="btn btn-dark btn-block" onclick="partnerForm()">+ Новый инвестор</button>');
+}
+function partnerForm(id){
+  const p=id?DB.partners.find(x=>x.id===id):{};
+  openModal(id?'Изменить инвестора':'Новый инвестор',
+    '<div class="field"><label>ФИО</label><input id="pf-name" value="'+(p.name||'')+'"></div>'+
+    '<div class="field"><label>Телефон (WhatsApp)</label><input id="pf-phone" type="tel" value="'+(p.phone||'')+'"></div>'+
+    '<div class="field"><label>Сумма вклада (₽)</label><input id="pf-dep" type="number" value="'+(p.deposit||'')+'"></div>'+
+    '<div class="field"><label>Срок вклада (мес.)</label><input id="pf-term" type="number" value="'+(p.term||12)+'"></div>'+
+    '<div class="field"><label>Дата вклада</label><input id="pf-start" type="date" value="'+(p.start||todayISO())+'"></div>'+
+    '<div class="field"><label>Доля инвестора в прибыли (%)</label><input id="pf-pct" type="number" value="'+(p.pct==null?50:p.pct)+'"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="savePartner(\''+(id||'')+'\')">Сохранить</button>');
+}
+function savePartner(id){
+  const g=k=>document.getElementById('pf-'+k).value;
+  const name=g('name').trim();if(!name){toast('Введите имя');return;}
+  const d={name,phone:g('phone').trim(),deposit:+g('dep')||0,term:+g('term')||12,
+    start:g('start')||todayISO(),pct:Math.max(0,Math.min(100,+g('pct')||0))};
+  if(id)Object.assign(DB.partners.find(x=>x.id===id),d);
+  else DB.partners.push(Object.assign({id:uid(),payouts:[]},d));
+  saveDB();logAudit('Инвестор',name+' — '+fmtR(d.deposit));
+  toast('Сохранено');id?openPartner(id):openPartners();
+}
+function deletePartner(id){
+  if(!confirm('Удалить инвестора? Его доли в договорах снимутся.'))return;
+  DB.contracts.forEach(c=>{c.funding=(c.funding||[]).filter(f=>f.partnerId!==id);});
+  DB.partners=DB.partners.filter(p=>p.id!==id);
+  saveDB();openPartners();
+}
 
-<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="modalTitle">—</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <div id="modalBody"></div>
-  </div>
-</div>
+/* ---------- карточка инвестора ---------- */
+function setRpMonth(id,v){window._rpMonth=v||monthPrefix();openPartner(id);}
+function openPartner(id){
+  const p=DB.partners.find(x=>x.id===id);if(!p)return;
+  const m=window._rpMonth||monthPrefix(),s=partnerStats(p,m);
+  const sd=p.start?parseD(p.start):null;
+  const end=sd?new Date(sd.getFullYear(),sd.getMonth()+(p.term||0),sd.getDate()):null;
+  const rows=s.rows.map(r=>
+    '<div class="schedule-row '+(r.st.lvl==='bad'||r.st.lvl==='late'?'overdue':'')+'">'+
+    '<div class="info"><div class="date">'+r.st.icon+' '+shortName(cName(r.c))+' · '+r.c.product+'</div>'+
+    '<div class="amt">Вложено '+fmtR(r.a)+' ('+Math.round(r.sh*100)+'%) · '+r.paid+'/'+r.total+' мес · след. '+fmtDate(r.next)+'</div>'+
+    '<div class="amt">'+(r.done?'✅ закрыт, прибыль начислена: '+fmtR(r.earned):'⏳ прибыль в резерве: '+fmtR(r.held)+' (ещё ожидается '+fmtR(r.left)+')')+'</div>'+
+    '<div class="amt">'+r.st.txt+'</div></div></div>').join('')||
+    '<div class="empty-desc">Деньги пока не вложены в договоры</div>';
+  const led=s.mLed.map(e=>
+    '<div class="schedule-row paid"><div class="info"><div class="date">'+fmtDate(e.date)+' · '+
+    shortName(cName(e.c))+' · '+e.c.product+'</div>'+
+    '<div class="amt" style="text-decoration:none;opacity:1">Вложено '+fmtR(e.a)+' → на счёт вернулось '+fmtR(e.prin)+
+    ' · прибыль '+fmtR(e.profInv)+(e.done?' (начислена)':' (в резерве)')+'</div></div></div>').join('')||
+    '<div class="empty-desc">В этом месяце платежей не было</div>';
+  const row=(a,b,x)=>'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>'+a+'</span><b'+(x?' style="color:'+x+'"':'')+'>'+b+'</b></div>';
+  openModal(p.name,
+    '<div class="card"><div class="card-label">Вклад</div><div class="big-number">'+fmt(p.deposit||0)+' <span class="cur">₽</span></div>'+
+    '<div class="card-hint">'+(p.term||'—')+' мес · до '+(end?fmtDate(end):'—')+' · доля в прибыли '+(p.pct==null?50:p.pct)+'%</div></div>'+
+    '<div class="card"><div class="card-label">Деньги</div>'+
+    row('В договорах:',fmtR(s.inWork))+
+    row('Вернулось, свободно:',fmtR(s.free),s.free<0?'var(--danger)':'#5a7522')+
+    (s.problem?row('🔴 В проблемных:',fmtR(s.problem),'var(--danger)'):'')+'</div>'+
+    '<div class="card"><div class="card-label">Прибыль</div>'+
+    row('⏳ В резерве (договоры не закрыты):',fmtR(s.held))+
+    row('✅ Начислена (договоры закрыты):',fmtR(s.profit))+
+    row('Выплачено:',fmtR(s.paidOut))+row('К выплате:',fmtR(s.toPay),'#5a7522')+
+    '<div class="card-hint">Прибыль из резерва становится начисленной, когда клиент оплатил весь договор.</div></div>'+
+    '<div class="field"><label>Месяц отчёта</label><input type="month" value="'+m+'" onchange="setRpMonth(\''+id+'\',this.value)"></div>'+
+    '<div class="card"><div class="card-label">За '+mLabel(m)+'</div>'+row('Вернулось основного на счёт:',fmtR(s.mRet))+
+    row('Прибыль поступила в резерв:',fmtR(s.mProfit))+row('Прибыль начислена (закрылись договоры):',fmtR(s.mReleased))+
+    '<div class="card-hint">Ещё ожидается в месяце: '+fmtR(s.mExp)+'</div></div>'+
+    '<div class="section-label" style="margin-top:0">Поступления за месяц</div><div class="card" style="padding:8px 18px">'+led+'</div>'+
+    '<div class="section-label">Где лежат деньги</div><div class="card" style="padding:8px 18px">'+rows+'</div>'+
+    '<div class="btn-row"><button class="btn btn-dark" style="flex:1" onclick="reportWA(\''+id+'\')">📲 Отчёт</button>'+
+    '<button class="btn btn-outline" style="flex:1" onclick="reportPrint(\''+id+'\')">🖨 PDF</button></div>'+
+    '<button class="btn btn-outline btn-block" style="margin-top:10px" onclick="openPayout(\''+id+'\')">💸 Выплата инвестору</button>'+
+    '<button class="btn btn-outline btn-block" style="margin-top:10px" onclick="partnerForm(\''+id+'\')">Редактировать</button>'+
+    '<button class="btn btn-outline btn-block" style="margin-top:10px;color:var(--danger)" onclick="deletePartner(\''+id+'\')">Удалить</button>');
+}
 
-<div class="toast" id="toast"></div>
-<div id="printArea"></div>
+/* ---------- выплата инвестору ---------- */
+function openPayout(id){
+  const p=DB.partners.find(x=>x.id===id),s=partnerStats(p,monthPrefix());
+  const hist=(p.payouts||[]).slice().reverse().map(x=>'<div class="sub">'+fmtDate(x.date)+' — '+fmtR(x.amount)+'</div>').join('');
+  openModal('Выплата: '+shortName(p.name),
+    '<div class="card-hint" style="margin-bottom:10px">К выплате (только начисленная прибыль): <b>'+fmtR(s.toPay)+'</b></div>'+
+    '<div class="field"><label>Сумма (₽)</label><input id="po-amt" type="number" value="'+Math.max(0,Math.round(s.toPay))+'"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="savePayout(\''+id+'\')">Записать выплату</button>'+
+    '<div class="section-label">История</div>'+(hist||'<div class="empty-desc">Выплат нет</div>'));
+}
+function savePayout(id){
+  const a=+document.getElementById('po-amt').value||0;if(a<=0){toast('Введите сумму');return;}
+  const p=DB.partners.find(x=>x.id===id);
+  (p.payouts=p.payouts||[]).push({id:uid(),date:todayISO(),amount:a});
+  saveDB();logAudit('Выплата инвестору',p.name+' — '+fmtR(a));toast('Записано');openPartner(id);
+}
 
-<script src="app.js"></script>
-</body>
-</html>
+/* ---------- прибыль менеджера ---------- */
+function openManager(){
+  const s=managerStats();
+  const row=(a,b,x)=>'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>'+a+'</span><b'+(x?' style="color:'+x+'"':'')+'>'+b+'</b></div>';
+  const list=s.rows.map(r=>'<div class="schedule-row '+(r.done?'paid':'')+'"><div class="info"><div class="date">'+(r.done?'✅':'⏳')+' '+
+    shortName(cName(r.c))+' · '+r.c.product+'</div><div class="amt" style="text-decoration:none;opacity:1">'+
+    (r.done?'начислено ':'в резерве ')+fmtR(r.v)+'</div></div></div>').join('')||'<div class="empty-desc">Договоров с деньгами инвесторов нет</div>';
+  openModal('Прибыль менеджера',
+    '<div class="card">'+row('⏳ В резерве (договоры не закрыты):',fmtR(s.held))+row('✅ Начислена (договоры закрыты):',fmtR(s.earned))+
+    row('Выплачено:',fmtR(s.paidOut))+row('К выплате:',fmtR(s.toPay),'#5a7522')+'</div>'+
+    '<div class="section-label" style="margin-top:0">По договорам</div><div class="card" style="padding:8px 18px">'+list+'</div>'+
+    '<div class="field"><label>Выплата менеджеру (₽)</label><input id="mp-amt" type="number" value="'+Math.max(0,Math.round(s.toPay))+'"></div>'+
+    '<button class="btn btn-dark btn-block" onclick="saveMgrPayout()">Записать выплату</button>');
+}
+function saveMgrPayout(){
+  const a=+document.getElementById('mp-amt').value||0;if(a<=0){toast('Введите сумму');return;}
+  (DB.mgrPayouts=DB.mgrPayouts||[]).push({id:uid(),date:todayISO(),amount:a});
+  saveDB();logAudit('Выплата менеджеру',fmtR(a));toast('Записано');openManager();
+}
+
+/* ---------- ПРОВЕРКА: сходятся ли суммы ---------- */
+function openCheck(){
+  let recv=0,iPrin=0,iProf=0,oFromInv=0,oOwn=0,hInv=0,hMgr=0;
+  const issues=[];
+  DB.contracts.forEach(c=>{
+    const fin=finOf(c),fund=(c.funding||[]).reduce((t,x)=>t+x.amount,0),done=contractDone(c);
+    if(fund>fin+0.5)issues.push('Договор «'+c.product+'»: вложено '+fmtR(fund)+' больше нужного '+fmtR(fin));
+    const shAll=fin?Math.min(1,fund/fin):0;
+    (c.schedule||[]).forEach(p=>{
+      if(!p.paid)return;
+      const s=split(c,p);recv+=p.amount;
+      let ip=0,ipf=0,io=0;
+      (c.funding||[]).forEach(x=>{
+        const pt=DB.partners.find(z=>z.id===x.partnerId);if(!pt||!fin)return;
+        const sh=x.amount/fin;ip+=s.prin*sh;ipf+=s.prof*sh*pctOf(pt);io+=s.prof*sh*(1-pctOf(pt));
+      });
+      iPrin+=ip;iProf+=ipf;oFromInv+=io;
+      if(!done){hInv+=ipf;hMgr+=io;}
+      oOwn+=(s.prin+s.prof)*(1-shAll);
+    });
+  });
+  DB.partners.forEach(p=>{
+    const s=partnerStats(p,monthPrefix());
+    if(s.free<-0.5)issues.push(p.name+': вложено больше вклада на '+fmtR(-s.free));
+    if(Math.abs((p.deposit||0)-(s.free+s.inWork))>0.5)issues.push(p.name+': вклад не сходится');
+  });
+  const ms=managerStats(),invHeldSum=DB.partners.reduce((t,p)=>t+partnerStats(p,monthPrefix()).held,0);
+  if(Math.abs(invHeldSum-hInv)>1)issues.push('Резерв инвесторов не сходится: '+fmtR(invHeldSum)+' и '+fmtR(hInv));
+  if(Math.abs(ms.held-hMgr)>1)issues.push('Резерв менеджера не сходится: '+fmtR(ms.held)+' и '+fmtR(hMgr));
+  const sum=iPrin+iProf+oFromInv+oOwn,diff=Math.round(sum-recv);
+  if(Math.abs(diff)>1)issues.push('Разница в распределении платежей: '+fmtR(diff));
+  const row=(a,b)=>'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>'+a+'</span><b>'+fmtR(b)+'</b></div>';
+  const ok=!issues.length;
+  const parts=DB.partners.map(p=>{
+    const s=partnerStats(p,monthPrefix());
+    return '<div class="list-item"><div class="main"><div class="title">'+p.name+'</div><div class="sub">вклад '+fmtR(p.deposit||0)+
+      ' = в работе '+fmtR(s.inWork)+' + свободно '+fmtR(s.free)+'</div></div></div>';}).join('');
+  openModal('Проверка расчётов',
+    '<div class="card"><div class="card-label">'+(ok?'✅ Всё сходится':'⚠️ Есть расхождения')+'</div>'+
+    (ok?'':issues.map(i=>'<div style="color:var(--danger);font-size:13px;margin-bottom:4px">• '+i+'</div>').join(''))+'</div>'+
+    '<div class="section-label" style="margin-top:0">Куда делись деньги клиентов</div>'+
+    '<div class="card">'+row('Получено от клиентов:',recv)+row('→ инвесторам, основное (сразу на счёт):',iPrin)+row('→ инвесторам, прибыль:',iProf)+
+    row('→ менеджеру, его 50% прибыли:',oFromInv)+row('→ вам, свои деньги в договорах:',oOwn)+
+    '<hr class="divider" style="margin:10px 0">'+row('Итого распределено:',sum)+'</div>'+
+    '<div class="card"><div class="card-label">Из прибыли пока в резерве (договоры не закрыты)</div>'+
+    row('Инвесторов:',hInv)+row('Менеджера:',hMgr)+'</div>'+
+    '<div class="section-label">Вклады инвесторов</div>'+(parts||'<div class="empty-desc">Инвесторов нет</div>'));
+}
+
+/* ---------- отчёт ---------- */
+function reportText(p){
+  const m=window._rpMonth||monthPrefix(),s=partnerStats(p,m);
+  const lines=s.rows.map((r,i)=>(i+1)+'. '+shortName(cName(r.c))+' — '+r.c.product+
+    '\n   Вложено '+fmtR(r.a)+' ('+Math.round(r.sh*100)+'%), оплачено '+r.paid+'/'+r.total+
+    ', след. платёж '+fmtDate(r.next)+'\n   '+r.st.icon+' '+r.st.txt+
+    '\n   '+(r.done?'Договор закрыт, прибыль начислена: '+fmtR(r.earned):'Прибыль в резерве: '+fmtR(r.held))).join('\n');
+  const mon=s.mLed.map(e=>'• '+fmtDate(e.date)+' '+shortName(cName(e.c))+': на счёт вернулось '+fmtR(e.prin)+', прибыль '+fmtR(e.profInv)+(e.done?' (начислена)':' (в резерве)')).join('\n');
+  return 'Ассаляму алейкум, '+p.name+'!\n\nОтчёт за '+mLabel(m)+'\n\n'+
+    'Вклад: '+fmtR(p.deposit||0)+'\nВ договорах: '+fmtR(s.inWork)+'\nВернулось, свободно: '+fmtR(s.free)+
+    (s.problem?'\n🔴 В проблемных: '+fmtR(s.problem):'')+
+    '\n\nПоступило за месяц:\n'+(mon||'— платежей не было')+
+    '\n\nИтого за месяц: основное '+fmtR(s.mRet)+', прибыль в резерв '+fmtR(s.mProfit)+
+    '\nНачислено после закрытия договоров: '+fmtR(s.mReleased)+
+    '\nОжидается ещё: '+fmtR(s.mExp)+
+    '\n\nПрибыль в резерве: '+fmtR(s.held)+'\nПрибыль начислена: '+fmtR(s.profit)+'\nВыплачено: '+fmtR(s.paidOut)+'\nК выплате: '+fmtR(s.toPay)+
+    '\n\nГде ваши деньги:\n'+(lines||'—')+'\n\nБаракаллаху фикум!';
+}
+function reportWA(id){
+  const p=DB.partners.find(x=>x.id===id),ph=(p.phone||'').replace(/\D/g,'');
+  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(reportText(p)),'_blank');
+}
+function reportPrint(id){
+  const p=DB.partners.find(x=>x.id===id),m=window._rpMonth||monthPrefix(),s=partnerStats(p,m);
+  const rows=s.rows.map(r=>'<tr><td>'+shortName(cName(r.c))+'</td><td>'+r.c.product+'</td><td>'+fmtR(r.a)+' ('+Math.round(r.sh*100)+'%)</td><td>'+
+    r.paid+'/'+r.total+'</td><td>'+fmtDate(r.next)+'</td><td>'+r.st.icon+' '+r.st.txt+'</td><td>'+(r.done?'начислена '+fmtR(r.earned):'в резерве '+fmtR(r.held))+'</td></tr>').join('');
+  const mrows=s.mLed.map(e=>'<tr><td>'+fmtDate(e.date)+'</td><td>'+shortName(cName(e.c))+' · '+e.c.product+'</td><td>'+fmtR(e.prin)+'</td><td>'+fmtR(e.profInv)+(e.done?' (начислена)':' (в резерве)')+'</td></tr>').join('');
+  document.getElementById('printArea').innerHTML=
+    '<h1>Отчёт инвестору за '+mLabel(m)+'</h1><h2>'+p.name+'</h2>'+
+    '<ul><li>Вклад: <b>'+fmtR(p.deposit||0)+'</b></li><li>В договорах: <b>'+fmtR(s.inWork)+'</b>, свободно: <b>'+fmtR(s.free)+'</b></li>'+
+    '<li>За месяц: основное <b>'+fmtR(s.mRet)+'</b>, прибыль в резерв <b>'+fmtR(s.mProfit)+'</b>, начислено после закрытия договоров <b>'+fmtR(s.mReleased)+'</b></li>'+
+    '<li>Прибыль в резерве <b>'+fmtR(s.held)+'</b>, начислена <b>'+fmtR(s.profit)+'</b>, выплачено <b>'+fmtR(s.paidOut)+'</b>, к выплате <b>'+fmtR(s.toPay)+'</b></li></ul>'+
+    '<h3>Поступления за месяц</h3><table><tr><th>Дата</th><th>Договор</th><th>Основное</th><th>Прибыль</th></tr>'+mrows+'</table>'+
+    '<h3>Где лежат деньги</h3><table><tr><th>Клиент</th><th>Товар</th><th>Вложено</th><th>Оплачено</th><th>След. платёж</th><th>Статус</th><th>Прибыль</th></tr>'+rows+'</table>';
+  setTimeout(()=>window.print(),100);
+}
+
+/* ---------- пункты меню «Ещё» ---------- */
+(function(){
+  const more=document.getElementById('screen-more');
+  if(!more||document.getElementById('menu-inv'))return;
+  const mk=(id,t,s,f)=>{const d=document.createElement('div');d.className='list-item';d.id=id;d.onclick=f;
+    d.innerHTML='<div class="main"><div class="title">'+t+'</div><div class="sub">'+s+'</div></div><div style="color:var(--muted)">›</div>';return d;};
+  const h=more.querySelector('h1');
+  if(h)h.after(mk('menu-inv','👥 Инвесторы','Вклады, доли, отчёты',openPartners),
+    mk('menu-mgr','💼 Прибыль менеджера','Начисляется после закрытия договора',openManager),
+    mk('menu-chk','✅ Проверка инвесторов','Сходятся ли суммы',openCheck));
+})();
