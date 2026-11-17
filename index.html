@@ -77,12 +77,14 @@ function ledger(pid){
 /* ---------- БАЛАНСЫ ИНВЕСТОРА ---------- */
 function partnerStats(p,month){
   const s={dep:p.deposit||0,Fd:0,Ff:0,Rd:0,Rf:0,Pacc:0,Pres:0,mRet:0,mProfit:0,
-    mReleased:0,mExp:0,rows:[],led:ledger(p.id),mLed:[]};
+    mReleased:0,mExp:0,rows:[],led:ledger(p.id),mLed:[],mMap:{},mByC:[]};
   s.led.forEach(e=>{
     if(e.src==='prf')s.Rf+=e.prin;else s.Rd+=e.prin;
     if(e.done){s.Pacc+=e.profInv;if(e.doneDate.startsWith(month))s.mReleased+=e.profInv;}
     else s.Pres+=e.profInv;
-    if(e.date.startsWith(month)){s.mRet+=e.prin;s.mProfit+=e.profInv;s.mLed.push(e);}
+    if(e.date.startsWith(month)){s.mRet+=e.prin;s.mProfit+=e.profInv;s.mLed.push(e);
+      const g=s.mMap[e.c.id]||(s.mMap[e.c.id]={c:e.c,prin:0,profit:0,pays:{},done:e.done});
+      g.prin+=e.prin;g.profit+=e.profInv;g.pays[e.p.n||e.date]=1;}
   });
   DB.contracts.forEach(c=>{
     const ents=(c.funding||[]).filter(x=>x.partnerId===p.id);
@@ -102,6 +104,8 @@ function partnerStats(p,month){
       done:contractDone(c),held:mine.reduce((t,e)=>t+(e.done?0:e.profInv),0),
       earned:mine.reduce((t,e)=>t+(e.done?e.profInv:0),0),left});
   });
+  s.mByC=Object.keys(s.mMap).map(k=>{const g=s.mMap[k],r=s.rows.find(x=>x.c.id===k)||{};
+    return{c:g.c,a:r.a||0,sh:r.sh||0,prin:g.prin,profit:g.profit,n:Object.keys(g.pays).length,done:g.done};});
   s.PW=s.Fd-s.Rd;                         /* основной капитал в работе */
   s.RW=s.Ff-s.Rf;                         /* реинвестированная прибыль в работе */
   s.freePrincipal=s.dep-s.PW;             /* свободный основной капитал */
@@ -343,7 +347,7 @@ function partnerForm(id){
     '<div class="field"><label>Сумма вклада (₽)</label><input id="pf-dep" type="number" value="'+(p.deposit||'')+'"></div>'+
     '<div class="field"><label>Срок вклада (мес.)</label><input id="pf-term" type="number" value="'+(p.term||12)+'"></div>'+
     '<div class="field"><label>Дата вклада</label><input id="pf-start" type="date" value="'+(p.start||todayISO())+'"></div>'+
-    '<div class="field"><label>Доля инвестора в прибыли (%)</label><input id="pf-pct" type="number" value="'+(p.pct==null?50:p.pct)+'"></div>'+
+    '<div class="field"><label>Доля инвестора в прибыли (%)</label><input id="pf-pct" type="text" inputmode="decimal" placeholder="например 37,5" value="'+(p.pct==null?50:p.pct)+'"></div>'+
     '<div class="card-hint" style="margin-bottom:10px">Изменение доли влияет только на новые договоры.</div>'+
     '<button class="btn btn-dark btn-block" onclick="savePartner(\''+(id||'')+'\')">Сохранить</button>');
 }
@@ -351,13 +355,16 @@ function savePartner(id){
   const g=k=>document.getElementById('pf-'+k).value;
   const name=g('name').trim();if(!name){toast('Введите имя');return;}
   const d={name,phone:g('phone').trim(),deposit:+g('dep')||0,term:+g('term')||12,
-    start:g('start')||todayISO(),pct:Math.max(0,Math.min(100,+g('pct')||0))};
+    start:g('start')||todayISO(),pct:(function(){const v=parseFloat(String(g('pct')).replace(',','.'));return isNaN(v)?50:Math.max(0,Math.min(100,v));})()};
   if(id)Object.assign(DB.partners.find(x=>x.id===id),d);
   else DB.partners.push(Object.assign({id:uid(),payouts:[]},d));
   saveDB();logAudit('Инвестор',name+' — '+fmtR(d.deposit));
   toast('Сохранено');id?openPartner(id):openPartners();
 }
 function deletePartner(id){
+  const p0=DB.partners.find(x=>x.id===id);
+  if(DB.contracts.some(c=>(c.funding||[]).some(f=>f.partnerId===id))||(p0&&(p0.payouts||[]).length)){
+    toast('Нельзя удалить: есть договоры или выплаты. История сохраняется');return;}
   if(!confirm('Удалить инвестора? Его доли в договорах снимутся. Сначала сделайте резервную копию.'))return;
   DB.contracts.forEach(c=>{c.funding=(c.funding||[]).filter(f=>f.partnerId!==id);});
   DB.partners=DB.partners.filter(p=>p.id!==id);
@@ -377,11 +384,10 @@ function openPartner(id){
     '<div class="amt">'+(r.done?'✅ закрыт, прибыль начислена: '+fmtR(r.earned):'⏳ прибыль в резерве: '+fmtR(r.held)+' (ещё ожидается '+fmtR(r.left)+')')+'</div>'+
     '<div class="amt">'+r.st.txt+'</div></div></div>').join('')||
     '<div class="empty-desc">Деньги пока не вложены в договоры</div>';
-  const led=s.mLed.map(e=>
-    '<div class="schedule-row paid"><div class="info"><div class="date">'+fmtDate(e.date)+' · '+
-    shortName(cName(e.c))+' · '+e.c.product+'</div>'+
-    '<div class="amt" style="text-decoration:none;opacity:1">Основной капитал вернулся: '+fmtR(e.prin)+
-    ' · прибыль '+fmtR(e.profInv)+(e.done?' (начислена)':' (в резерве)')+'</div></div></div>').join('')||
+  const led=s.mByC.map(g=>
+    '<div class="schedule-row paid"><div class="info"><div class="date">'+shortName(cName(g.c))+' · '+g.c.product+'</div>'+
+    '<div class="amt" style="text-decoration:none;opacity:1">Участие '+fmtR(g.a)+' ('+(g.sh*100).toFixed(1)+'% договора) · платежей '+g.n+'</div>'+
+    '<div class="amt" style="text-decoration:none;opacity:1">Основной капитал вернулся '+fmtR(g.prin)+' · прибыль '+fmtR(g.profit)+(g.done?' (начислена)':' (в резерве)')+'</div></div></div>').join('')||
     '<div class="empty-desc">В этом месяце платежей не было</div>';
   openModal(p.name,
     '<div class="card"><div class="card-label">Первоначальный вклад</div><div class="big-number">'+fmt(p.deposit||0)+' <span class="cur">₽</span></div>'+
@@ -402,7 +408,7 @@ function openPartner(id){
     '<div class="card"><div class="card-label">За '+mLabel(m)+'</div>'+kv('Вернулось основного капитала:',fmtR(s.mRet))+
     kv('Прибыль за месяц:',fmtR(s.mProfit))+kv('Переведено из резерва в начисленную:',fmtR(s.mReleased))+
     '<div class="card-hint">Ещё ожидается в месяце: '+fmtR(s.mExp)+'</div></div>'+
-    '<div class="section-label" style="margin-top:0">Поступления за месяц</div><div class="card" style="padding:8px 18px">'+led+'</div>'+
+    '<div class="section-label" style="margin-top:0">Прибыль по договорам за месяц</div><div class="card" style="padding:8px 18px">'+led+'</div>'+
     '<div class="section-label">Где лежат деньги</div><div class="card" style="padding:8px 18px">'+rows+'</div>'+
     '<div class="btn-row"><button class="btn btn-dark" style="flex:1" onclick="reportWA(\''+id+'\')">📲 Отчёт</button>'+
     '<button class="btn btn-outline" style="flex:1" onclick="reportPrint(\''+id+'\')">🖨 PDF</button></div>'+
@@ -516,6 +522,8 @@ function openCheck(){
   if(Math.abs(sumT('reserve')-(T('Pacc')+T('Pres')))>1)issues.push('Прибыль инвесторов: журнал '+fmtR(sumT('reserve'))+' и баланс '+fmtR(T('Pacc')+T('Pres')));
   if(Math.abs(sumT('release')-T('Pacc'))>1)issues.push('Перевод из резерва '+fmtR(sumT('release'))+' не равен начисленной прибыли '+fmtR(T('Pacc')));
   if(ms.available<-0.5)issues.push('Менеджеру выплачено больше начисленного на '+fmtR(-ms.available));
+  const lg=legacyShares();
+  if(lg)warns.push('Долей без зафиксированного процента: '+lg+'. Смена процента инвестора изменит старые расчёты — нажмите «Зафиксировать».');
   const ok=!issues.length;
   const parts=S.map(({p,s})=>'<div class="list-item"><div class="main"><div class="title">'+p.name+'</div><div class="sub">вклад '+fmtR(p.deposit||0)+
     ' = в работе '+fmtR(s.PW)+' + свободно '+fmtR(s.freePrincipal)+'</div></div></div>').join('');
@@ -536,6 +544,7 @@ function openCheck(){
     kv('→ своих денег менеджера / не закрыто:',fmtR(own))+
     '<hr class="divider" style="margin:10px 0">'+kv('Итого распределено:',fmtR(dist))+'</div>'+
     '<div class="section-label">Вклады</div>'+(parts||'<div class="empty-desc">Инвесторов нет</div>')+
+    (lg?'<button class="btn btn-outline btn-block" style="margin-top:12px" onclick="freezePct()">🔒 Зафиксировать процент в старых договорах</button>':'')+
     '<button class="btn btn-outline btn-block" style="margin-top:12px" onclick="exportData()">💾 Скачать резервную копию</button>');
 }
 
@@ -546,12 +555,12 @@ function reportText(p){
     '\n   Вложено '+fmtR(r.a)+' ('+Math.round(r.sh*100)+'%)'+(r.aPrf?', из прибыли '+fmtR(r.aPrf):'')+
     ', оплачено '+r.paid+'/'+r.total+', след. платёж '+fmtDate(r.next)+'\n   '+r.st.icon+' '+r.st.txt+
     '\n   '+(r.done?'Договор закрыт, прибыль начислена: '+fmtR(r.earned):'Прибыль в резерве: '+fmtR(r.held))).join('\n');
-  const mon=s.mLed.map(e=>'• '+fmtDate(e.date)+' '+shortName(cName(e.c))+': основной капитал вернулся '+fmtR(e.prin)+', прибыль '+fmtR(e.profInv)+(e.done?' (начислена)':' (в резерве)')).join('\n');
+  const mon=s.mByC.map(g=>'• '+shortName(cName(g.c))+' · '+g.c.product+': участие '+fmtR(g.a)+' ('+(g.sh*100).toFixed(1)+'% договора), платежей '+g.n+', основной капитал вернулся '+fmtR(g.prin)+', прибыль '+fmtR(g.profit)+(g.done?' (начислена)':' (в резерве)')).join('\n');
   return 'Ассаляму алейкум, '+p.name+'!\n\nОтчёт за '+mLabel(m)+'\n\n'+
     'Первоначальный вклад: '+fmtR(p.deposit||0)+
     '\nОсновной капитал в работе: '+fmtR(s.PW)+'\nСвободный основной капитал: '+fmtR(s.freePrincipal)+
     (s.problem?'\n🔴 В проблемных договорах: '+fmtR(s.problem):'')+
-    '\n\nПоступило за месяц:\n'+(mon||'— платежей не было')+
+    '\n\nПрибыль по договорам за месяц:\n'+(mon||'— платежей не было')+
     '\n\nПрибыль за месяц: '+fmtR(s.mProfit)+'\nПереведено из резерва в начисленную: '+fmtR(s.mReleased)+
     '\nОжидается ещё в месяце: '+fmtR(s.mExp)+
     '\n\nПрибыль начислена (договоры закрыты): '+fmtR(s.Pacc)+'\nПрибыль в резерве: '+fmtR(s.Pres)+
@@ -569,8 +578,7 @@ function reportPrint(id){
   const rows=s.rows.map(r=>'<tr><td>'+shortName(cName(r.c))+'</td><td>'+r.c.product+'</td><td>'+fmtR(r.a)+' ('+Math.round(r.sh*100)+'%)'+
     (r.aPrf?'<br>из прибыли '+fmtR(r.aPrf):'')+'</td><td>'+r.paid+'/'+r.total+'</td><td>'+fmtDate(r.next)+'</td><td>'+r.st.icon+' '+r.st.txt+
     '</td><td>'+(r.done?'начислена '+fmtR(r.earned):'в резерве '+fmtR(r.held))+'</td></tr>').join('');
-  const mrows=s.mLed.map(e=>'<tr><td>'+fmtDate(e.date)+'</td><td>'+shortName(cName(e.c))+' · '+e.c.product+'</td><td>'+fmtR(e.prin)+'</td><td>'+
-    fmtR(e.profInv)+(e.done?' (начислена)':' (в резерве)')+'</td></tr>').join('');
+  const mrows=s.mByC.map(g=>'<tr><td>'+shortName(cName(g.c))+' · '+g.c.product+'</td><td>'+fmtR(g.a)+' ('+(g.sh*100).toFixed(1)+'%)</td><td>'+g.n+'</td><td>'+fmtR(g.prin)+'</td><td>'+fmtR(g.profit)+(g.done?' (начислена)':' (в резерве)')+'</td></tr>').join('');
   document.getElementById('printArea').innerHTML=
     '<h1>Отчёт инвестору за '+mLabel(m)+'</h1><h2>'+p.name+'</h2>'+
     '<ul><li>Первоначальный вклад: <b>'+fmtR(p.deposit||0)+'</b></li>'+
@@ -580,9 +588,19 @@ function reportPrint(id){
     '<li>Направлено на повторное инвестирование: <b>'+fmtR(s.Ff)+'</b> (в работе '+fmtR(s.RW)+')</li>'+
     '<li>Выплачено: <b>'+fmtR(s.paidOut)+'</b>, можно выплатить сейчас: <b>'+fmtR(s.payable)+'</b></li>'+
     '<li>Общий доступный остаток для инвестирования: <b>'+fmtR(s.totalFree)+'</b></li></ul>'+
-    '<h3>Поступления за месяц</h3><table><tr><th>Дата</th><th>Договор</th><th>Основной капитал</th><th>Прибыль</th></tr>'+mrows+'</table>'+
+    '<h3>Прибыль по договорам за месяц</h3><table><tr><th>Договор</th><th>Участие</th><th>Платежей</th><th>Основной капитал</th><th>Прибыль</th></tr>'+mrows+'</table>'+
     '<h3>Где лежат деньги</h3><table><tr><th>Клиент</th><th>Товар</th><th>Вложено</th><th>Оплачено</th><th>След. платёж</th><th>Статус</th><th>Прибыль</th></tr>'+rows+'</table>';
   setTimeout(()=>window.print(),100);
+}
+
+/* ---------- фиксация процента в старых долях ---------- */
+const legacyShares=()=>DB.contracts.reduce((t,c)=>t+(c.funding||[]).filter(x=>x.pct==null).length,0);
+function freezePct(){
+  if(!confirm('Сначала скачается резервная копия. Затем в старых долях зафиксируется ТЕКУЩИЙ процент инвестора. Продолжить?'))return;
+  exportData();let n=0;
+  DB.contracts.forEach(c=>(c.funding||[]).forEach(x=>{
+    if(x.pct==null){const p=DB.partners.find(z=>z.id===x.partnerId);if(p){x.pct=p.pct==null?50:p.pct;n++;}}}));
+  saveDB();logAudit('Фиксация процента','долей: '+n);toast('Зафиксировано долей: '+n);openCheck();
 }
 
 /* ---------- пункты меню «Ещё» ---------- */
