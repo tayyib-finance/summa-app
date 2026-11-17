@@ -1,6 +1,6 @@
 /* ============================================================
    СУММА — app.js
-   Логика приложения (v1.0)
+   Логика приложения (v1.1: наценка в месяц задаётся в %, можно 3,7)
    ============================================================ */
 
 const DB_KEY='summa_db_v1';
@@ -27,7 +27,13 @@ function saveDB(){localStorage.setItem(DB_KEY,JSON.stringify(DB));}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const fmt=n=>Math.round(n).toLocaleString('ru-RU');
 const fmtR=n=>fmt(n)+' ₽';
-const todayISO=()=>new Date().toISOString().slice(0,10);
+/* локальная дата без сдвига на сутки (toISOString даёт UTC) */
+const isoLocal=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+
+  String(d.getDate()).padStart(2,'0');
+const todayISO=()=>isoLocal(new Date());
+/* наценка в месяц, %: принимает 3,7 и 3.7; пусто или ошибка = 5 */
+const getRate=v=>{const x=parseFloat(String(v==null?'':v).replace(',','.'));
+  return isNaN(x)?5:Math.max(0,Math.min(100,x));};
 const monthPrefix=()=>{const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
 const parseD=s=>{if(!s)return new Date();
@@ -315,9 +321,13 @@ function syncFromRange(which){
   document.getElementById('c-months-v').value=months;
   updateCalcDisplay(price,down,months);
 }
+function calcRate(){
+  const el=document.getElementById('c-rate-v');
+  return getRate(el?el.value:5);
+}
 function updateCalcDisplay(price,down,months){
   const fin=price-down;
-  const markup=fin*0.05*months;
+  const markup=Math.round(fin*calcRate()/100*months);
   const total=price+markup;
   const monthly=Math.round((fin+markup)/months);
   document.getElementById('c-monthly').textContent=fmtR(monthly);
@@ -353,10 +363,11 @@ function openClientFormFromCalc(){
   const price=+document.getElementById('c-price').value;
   const down=+document.getElementById('c-down').value;
   const months=+document.getElementById('c-months').value;
+  const rate=calcRate();
   openModal('Анкета клиента',
     '<div style="color:var(--muted);font-size:13px;margin-bottom:14px">'+
     'Цена: <b>'+fmtR(price)+'</b> · Взнос: <b>'+fmtR(down)+
-    '</b> · Срок: <b>'+months+' мес.</b></div>'+
+    '</b> · Срок: <b>'+months+' мес.</b> · Наценка: <b>'+rate+'% в мес.</b></div>'+
     '<div class="field"><label>ФИО *</label><input id="a-name"></div>'+
     '<div class="field"><label>Телефон *</label>'+
       '<input id="a-phone" type="tel"></div>'+
@@ -371,7 +382,7 @@ function openClientFormFromCalc(){
       '<input id="a-product"></div>'+
     '<button class="btn btn-dark btn-block" '+
     'onclick="saveContractFromForm()">Создать договор</button>');
-  window._calcData={price,down,months};
+  window._calcData={price,down,months,rate};
 }
 function saveContractFromForm(){
   const name=document.getElementById('a-name').value.trim();
@@ -389,23 +400,24 @@ function saveContractFromForm(){
     createdAt:new Date().toISOString()
   });
   const cd=window._calcData;
+  const rate=getRate(cd.rate);
   const fin=cd.price-cd.down;
-  const markup=Math.round(fin*0.05*cd.months);
+  const markup=Math.round(fin*rate/100*cd.months);
   const total=cd.price+markup;
   const monthly=Math.round((fin+markup)/cd.months);
   const start=new Date();
   const schedule=[];
   for(let i=1;i<=cd.months;i++){
     const d=new Date(start.getFullYear(),start.getMonth()+i,start.getDate());
-    schedule.push({n:i,date:d.toISOString().slice(0,10),
+    schedule.push({n:i,date:isoLocal(d),
       amount:monthly,paid:false,paidDate:null});
   }
   const contractId=uid();
   DB.contracts.push({
     id:contractId,clientId:cid,product,
-    price:cd.price,down:cd.down,months:cd.months,
+    price:cd.price,down:cd.down,months:cd.months,rate,
     markup,total,monthly,
-    startDate:start.toISOString().slice(0,10),
+    startDate:isoLocal(start),
     schedule,status:'active',
     createdBy:ROLE,createdAt:new Date().toISOString()
   });
@@ -439,6 +451,9 @@ function openNewContract(){
     '<div class="field"><label>Первый взнос (мин. 20%)</label>'+
       '<input id="n-down" type="number" value="10000" '+
       'oninput="updateNewCalc()"></div>'+
+    '<div class="field"><label>Наценка в месяц (%), можно 3,7</label>'+
+      '<input id="n-rate" type="text" inputmode="decimal" value="5" '+
+      'oninput="updateNewCalc()"></div>'+
     '<div class="field"><label>Срок (1-24 мес)</label>'+
       '<input id="n-months" type="number" value="6" min="1" max="24" '+
       'oninput="updateNewCalc()"></div>'+
@@ -453,10 +468,11 @@ function openNewContract(){
 function updateNewCalc(){
   const price=+document.getElementById('n-price').value||0;
   const down=+document.getElementById('n-down').value||0;
+  const rate=getRate(document.getElementById('n-rate').value);
   const months=Math.max(1,Math.min(24,
     +document.getElementById('n-months').value||6));
   const fin=Math.max(0,price-down);
-  const markup=Math.round(fin*0.05*months);
+  const markup=Math.round(fin*rate/100*months);
   const total=price+markup;
   const monthly=Math.round((fin+markup)/months);
   document.getElementById('n-calc').innerHTML=
@@ -465,7 +481,7 @@ function updateNewCalc(){
       fmtR(monthly)+'</div>'+
     '<div style="display:flex;justify-content:space-between;'+
       'margin-top:10px;font-size:13px">'+
-      '<span>Наценка</span><span>'+fmtR(markup)+'</span></div>'+
+      '<span>Наценка ('+rate+'% в мес.)</span><span>'+fmtR(markup)+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;font-size:13px">'+
       '<span>Итого</span><span>'+fmtR(total)+'</span></div>';
 }
@@ -475,6 +491,7 @@ function saveContract(){
   const category=document.getElementById('n-category').value;
   const price=+document.getElementById('n-price').value||0;
   const down=+document.getElementById('n-down').value||0;
+  const rate=getRate(document.getElementById('n-rate').value);
   const months=Math.max(1,Math.min(24,
     +document.getElementById('n-months').value||6));
   const startStr=document.getElementById('n-start').value||todayISO();
@@ -482,19 +499,19 @@ function saveContract(){
   if(price<=0){toast('Введите цену');return;}
   if(down<price*0.2){toast('Минимум 20%');return;}
   const fin=price-down;
-  const markup=Math.round(fin*0.05*months);
+  const markup=Math.round(fin*rate/100*months);
   const total=price+markup;
   const monthly=Math.round((fin+markup)/months);
   const start=parseD(startStr);
   const schedule=[];
   for(let i=1;i<=months;i++){
     const d=new Date(start.getFullYear(),start.getMonth()+i,start.getDate());
-    schedule.push({n:i,date:d.toISOString().slice(0,10),
+    schedule.push({n:i,date:isoLocal(d),
       amount:monthly,paid:false,paidDate:null});
   }
   const cid=uid();
   DB.contracts.push({
-    id:cid,clientId,product,category,price,down,months,
+    id:cid,clientId,product,category,price,down,months,rate,
     markup,total,monthly,startDate:startStr,schedule,
     status:'active',createdBy:ROLE,
     createdAt:new Date().toISOString()
@@ -531,8 +548,8 @@ function openContract(id){
     '<div style="display:flex;justify-content:space-between;'+
       'margin-bottom:6px"><span>Цена:</span><b>'+fmtR(c.price)+'</b></div>'+
     '<div style="display:flex;justify-content:space-between;'+
-      'margin-bottom:6px"><span>Наценка:</span><b>'+fmtR(c.markup)+
-      '</b></div>'+
+      'margin-bottom:6px"><span>Наценка ('+(c.rate==null?5:c.rate)+'% в мес.):</span><b>'+
+      fmtR(c.markup)+'</b></div>'+
     '<div style="display:flex;justify-content:space-between;'+
       'margin-bottom:6px"><span>Итого:</span><b>'+fmtR(c.total)+'</b></div>'+
     '<div style="display:flex;justify-content:space-between;'+
